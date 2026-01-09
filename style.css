@@ -1,0 +1,1126 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f7fa;
+    color: #333;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Шапка */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #e1e5eb;
+}
+
+.header-left h1 {
+    color: #000;
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.stats {
+    display: flex;
+    gap: 20px;
+}
+
+.total, .today {
+    font-size: 16px;
+    color: #666;
+}
+
+.total span, .today span {
+    font-weight: 600;
+    color: #1E90FF;
+}
+
+.btn-excel {
+    background-color: #217346;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.3s;
+}
+
+.btn-excel:hover {
+    background-color: #1a5c38;
+}
+
+/* Навигация по дням */
+.days-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.days-container {
+    display: flex;
+    gap: 5px;
+}
+
+.day-btn {
+    padding: 10px 20px;
+    border: 1px solid #ddd;
+    background-color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.day-btn:hover {
+    background-color: #f0f0f0;
+}
+
+.day-btn.active {
+    background-color: #1E90FF;
+    color: white;
+    border-color: #1E90FF;
+}
+
+.btn-calendar {
+    padding: 10px 20px;
+    border: 1px solid #1E90FF;
+    background-color: white;
+    color: #1E90FF;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s;
+}
+
+.btn-calendar:hover {
+    background-color: #1E90FF;
+    color: white;
+}
+
+.calendar-container {
+    margin-bottom: 25px;
+    padding: 15px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Фильтры */
+.filters-section {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 25px;
+}
+
+.filters-section h3 {
+    margin-bottom: 15px;
+    color: #000;
+    font-size: 20px;
+}
+
+.filter-row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+    align-items: center;
+}
+
+.filter-group {
+    flex: 1;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+select, input {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.filter-value-container {
+    flex: 1;
+}
+
+.time-filters {
+    display: flex;
+    gap: 10px;
+}
+
+.filter-logic {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.btn-logic {
+    padding: 8px 15px;
+    border: 1px solid #1E90FF;
+    background-color: white;
+    color: #1E90FF;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.btn-logic:hover {
+    background-color: #1E90FF;
+    color: white;
+}
+
+.btn-remove {
+    padding: 8px;
+    border: 1px solid #ff6b6b;
+    background-color: white;
+    color: #ff6b6b;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-remove:hover {
+    background-color: #ff6b6b;
+    color: white;
+}
+
+.filter-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.btn-apply {
+    padding: 12px 24px;
+    background-color: #1E90FF;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    transition: background-color 0.3s;
+}
+
+.btn-apply:hover {
+    background-color: #0c7cd5;
+}
+
+.btn-clear {
+    padding: 12px 24px;
+    background-color: #f8f9fa;
+    color: #666;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.btn-clear:hover {
+    background-color: #e9ecef;
+}
+
+.filter-result {
+    margin-top: 15px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    min-height: 40px;
+}
+
+/* Диаграмма Ганта */
+.gantt-section {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 25px;
+}
+
+.gantt-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.gantt-header h3 {
+    color: #000;
+    font-size: 20px;
+}
+
+.timeline-controls {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.btn-now {
+    padding: 8px 16px;
+    background-color: #f8f9fa;
+    color: #666;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s;
+}
+
+.btn-now:hover {
+    background-color: #e9ecef;
+}
+
+.current-time {
+    color: #666;
+    font-size: 14px;
+}
+
+.gantt-container {
+    display: flex;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    overflow: hidden;
+    min-height: 500px; 
+}
+
+.gantt-sidebar {
+    width: 300px;
+    border-right: 1px solid #ddd;
+    overflow-y: auto;
+    background-color: #f8f9fa;
+}
+
+.sidebar-header {
+    padding: 15px;
+    background-color: #e9ecef;
+    font-weight: 600;
+    border-bottom: 1px solid #ddd;
+}
+
+.event-names {
+    padding: 0;
+}
+
+.event-name-item {
+    padding: 12px 15px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.event-name-item:hover {
+    background-color: #e9ecef;
+}
+
+.event-name-item.conflict {
+    color: #dc3545;
+    font-weight: 500;
+}
+
+.gantt-main {
+    flex: 1;
+    overflow: auto;
+    position: relative;
+}
+
+.time-scale {
+    display: flex;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #ddd;
+    height: 50px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.time-slot {
+    flex: 0 0 120px;
+    padding: 15px 10px;
+    text-align: center;
+    border-right: 1px solid #eee;
+    font-weight: 500;
+}
+
+.events-area {
+    position: relative;
+    height: calc(100% - 50px);
+    overflow: auto;
+}
+
+#gantt-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.timeline {
+    position: absolute;
+    top: 0;
+    width: 2px;
+    height: 100%;
+    background-color: #1E90FF;
+    z-index: 5;
+    cursor: col-resize;
+}
+
+.timeline.dragging {
+    background-color: #FF8C00;
+}
+
+/* Статистика */
+.stats-section {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 25px;
+}
+
+.stats-section h3 {
+    margin-bottom: 20px;
+    color: #000;
+    font-size: 20px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.stat-card {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+}
+
+.stat-card h4 {
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.stat-content {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.8;
+}
+
+/* Модальное окно */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+}
+
+
+.modal-content {
+    background-color: white;
+    margin: 5% auto;
+    padding: 30px;
+    border-radius: 10px;
+    width: 85%;
+    max-width: 700px;
+    position: relative;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.2);
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+.close {
+    position: absolute;
+    right: 20px;
+    top: 15px;
+    font-size: 28px;
+    font-weight: bold;
+    color: #aaa;
+    cursor: pointer;
+}
+
+.close:hover {
+    color: #000;
+}
+
+#modal-title {
+    margin-bottom: 20px;
+    color: #000;
+}
+
+.modal-body {
+    line-height: 1.8;
+}
+
+.modal-field {
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #eee;
+}
+
+.modal-field:last-child {
+    border-bottom: none;
+}
+
+.modal-label {
+    font-weight: 600;
+    color: #333;
+    display: inline-block;
+    width: 150px;
+}
+
+/* Адаптивность */
+@media (max-width: 1200px) {
+    .container {
+        padding: 15px;
+    }
+    
+    .gantt-container {
+        height: 500px;
+    }
+    
+    .gantt-sidebar {
+        width: 250px;
+    }
+}
+
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .days-container {
+        flex-wrap: wrap;
+    }
+    
+    .filter-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .filter-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .gantt-container {
+        flex-direction: column;
+        height: 700px;
+    }
+    
+    .gantt-sidebar {
+        width: 100%;
+        height: 200px;
+        border-right: none;
+        border-bottom: 1px solid #ddd;
+    }
+    
+    .gantt-main {
+        height: 500px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .modal-content {
+        width: 95%;
+        margin: 10% auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .header-left h1 {
+        font-size: 24px;
+    }
+    
+    .btn-excel, .btn-calendar, .btn-apply, .btn-clear {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .days-navigation {
+        flex-direction: column;
+        gap: 15px;
+        align-items: stretch;
+    }
+    
+    .timeline-controls {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+}
+
+/* Добавьте эти стили в конец файла style.css */
+
+/* Временная шкала с интервалом 30 минут */
+.time-slot {
+    flex: 0 0 60px; /* 60px для 30-минутных интервалов */
+    padding: 15px 5px;
+    text-align: center;
+    border-right: 1px solid #eee;
+    font-weight: 500;
+    font-size: 12px;
+    color: #666;
+    position: relative;
+}
+
+.time-slot:nth-child(even) {
+    background-color: #f8f9fa;
+}
+
+.time-slot:nth-child(odd) {
+    background-color: #ffffff;
+}
+
+.time-slot::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background-color: #e0e0e0;
+}
+
+/* Улучшения для временной линии */
+.timeline {
+    position: absolute;
+    top: 0;
+    width: 3px;
+    height: 100%;
+    background-color: #FF5722;
+    z-index: 5;
+    cursor: col-resize;
+    box-shadow: 0 0 5px rgba(255, 87, 34, 0.5);
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -4px;
+    width: 11px;
+    height: 11px;
+    background-color: #FF5722;
+    border-radius: 50%;
+    box-shadow: 0 0 5px rgba(255, 87, 34, 0.8);
+}
+
+.timeline.dragging {
+    background-color: #FF9800;
+    box-shadow: 0 0 8px rgba(255, 152, 0, 0.6);
+}
+
+.timeline.dragging::before {
+    background-color: #FF9800;
+}
+
+/* Улучшения для списка мероприятий */
+.event-name-item {
+    padding: 12px 15px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background-color: white;
+}
+
+.event-name-item:hover {
+    background-color: #f0f7ff;
+    transform: translateX(5px);
+    box-shadow: 2px 0 5px rgba(0, 123, 255, 0.1);
+}
+
+.event-name-item.conflict {
+    background-color: #fff5f5;
+    border-left: 3px solid #dc3545;
+}
+
+.event-name-item.conflict:hover {
+    background-color: #ffeaea;
+}
+
+/* Модальное окно с прокруткой для учеников */
+.pupils-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.pupils-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.pupils-list::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.pupils-list::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Улучшения для диаграммы */
+.events-area {
+    position: relative;
+    height: calc(100% - 50px);
+    overflow: auto;
+    background-color: #fafafa;
+}
+
+#gantt-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    overflow-y: auto;
+}
+
+/* Улучшения для адаптивности */
+@media (max-width: 768px) {
+    .time-slot {
+        flex: 0 0 50px;
+        font-size: 11px;
+        padding: 10px 3px;
+    }
+    
+    .gantt-container {
+        flex-direction: column;
+        height: 800px;
+    }
+    
+    .gantt-sidebar {
+        height: 250px;
+    }
+    
+    .gantt-main {
+        height: 550px;
+    }
+}
+
+@media (max-width: 480px) {
+    .time-slot {
+        flex: 0 0 40px;
+        font-size: 10px;
+    }
+}
+
+.gantt-event-block {
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16);
+    border-radius: 4px;
+}
+
+/* Фиксируем ширину области диаграммы, чтобы она соответствовала временному диапазону */
+.events-area {
+    position: relative;
+    
+    overflow: auto;
+    background-color: #fafafa;
+    /* Ширина для 24 интервалов по 30 минут (8:00-20:00) * 60px на интервал = 1440px */
+    /* Можно изменить 60px на другое значение, если хотите другой масштаб */
+    min-width: 1440px; /* 24 * 60 */
+}
+
+/* Обновляем стили для .gantt-main, чтобы он мог скроллиться */
+.gantt-main {
+    flex: 1;
+    overflow: auto;
+    position: relative;
+    /* Добавим горизонтальный скролл, если область диаграммы шире контейнера */
+    overflow-x: auto;
+}
+
+
+
+
+/* Диаграмма Ганта */
+.gantt-section {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 25px;
+}
+
+.gantt-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.gantt-header h3 {
+    color: #000;
+    font-size: 20px;
+}
+
+.timeline-controls {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.btn-now {
+    padding: 8px 16px;
+    background-color: #f8f9fa;
+    color: #666;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s;
+}
+
+.btn-now:hover {
+    background-color: #e9ecef;
+}
+
+.current-time {
+    color: #666;
+    font-size: 14px;
+}
+
+.gantt-container {
+    display: flex;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    overflow: hidden;
+    /* Убираем фиксированную высоту, чтобы контейнер мог расти */
+    /* height: 600px; <-- Закомментируйте или удалите эту строку */
+}
+
+.gantt-sidebar {
+    width: 300px;
+    border-right: 1px solid #ddd;
+    overflow-y: auto;
+    background-color: #f8f9fa;
+}
+
+.sidebar-header {
+    padding: 15px;
+    background-color: #e9ecef;
+    font-weight: 600;
+    border-bottom: 1px solid #ddd;
+}
+
+.event-names {
+    padding: 0;
+}
+
+.event-name-item {
+    padding: 12px 15px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.event-name-item:hover {
+    background-color: #e9ecef;
+}
+
+.event-name-item.conflict {
+    color: #dc3545;
+    font-weight: 500;
+}
+
+.gantt-main {
+    flex: 1;
+    overflow: auto; /* <-- Добавляем прокрутку для всего main */
+    position: relative;
+}
+
+.time-scale {
+    display: flex;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #ddd;
+    height: 50px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.time-slot {
+    flex: 0 0 60px;
+    padding: 15px 5px;
+    text-align: center;
+    border-right: 1px solid #eee;
+    font-weight: 500;
+    font-size: 12px;
+    color: #666;
+    position: relative;
+}
+
+.time-slot:nth-child(even) {
+    background-color: #f8f9fa;
+}
+
+.time-slot:nth-child(odd) {
+    background-color: #ffffff;
+}
+
+.time-slot::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background-color: #e0e0e0;
+}
+
+.events-area {
+    position: relative;
+    /* Убираем фиксированную высоту, делаем ее авто */
+    /* height: calc(100% - 50px); <-- Закомментируйте или удалите */
+    min-height: 500px; /* Минимальная высота, можно изменить */
+    overflow: auto; /* <-- Важно: разрешаем прокрутку */
+    background-color: #fafafa;
+}
+
+#gantt-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    /* Убираем фиксированную высоту, делаем ее авто */
+    /* height: 100%; <-- Закомментируйте или удалите */
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+}
+
+.timeline {
+    position: absolute;
+    top: 0;
+    width: 3px;
+    height: 100%;
+    background-color: #FF5722;
+    z-index: 5;
+    cursor: col-resize;
+    box-shadow: 0 0 5px rgba(255, 87, 34, 0.5);
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -4px;
+    width: 11px;
+    height: 11px;
+    background-color: #FF5722;
+    border-radius: 50%;
+    box-shadow: 0 0 5px rgba(255, 87, 34, 0.8);
+}
+
+.timeline.dragging {
+    background-color: #FF9800;
+    box-shadow: 0 0 8px rgba(255, 152, 0, 0.6);
+}
+
+.timeline.dragging::before {
+    background-color: #FF9800;
+}
+
+/* ОБНОВЛЕННЫЕ СТИЛИ ДЛЯ КОНТЕЙНЕРА ГАНТТА */
+.gantt-container {
+    display: flex;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    overflow: hidden;
+    /* УБЕРАЕМ фиксированную высоту */
+    /* height: 600px; */
+    min-height: 600px; /* Вместо фиксированной высоты используем минимальную */
+}
+
+/* ОБНОВЛЕННЫЕ СТИЛИ ДЛЯ ОСНОВНОЙ ОБЛАСТИ */
+.gantt-main {
+    flex: 1;
+    overflow: auto;
+    position: relative;
+    /* Добавляем минимальную высоту */
+    min-height: 600px;
+}
+
+/* ОБНОВЛЕННЫЕ СТИЛИ ДЛЯ ОБЛАСТИ СОБЫТИЙ */
+.events-area {
+    position: relative;
+    /* Убираем фиксированную высоту, делаем ее автоматической */
+    min-height: 500px;
+    overflow: auto;
+    background-color: #fafafa;
+    /* Минимальная ширина для временной шкалы */
+    min-width: 1440px; /* 24 интервала по 60px */
+}
+
+/* ОБНОВЛЕННЫЕ СТИЛИ ДЛЯ CANVAS */
+#gantt-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    /* Убираем фиксированную высоту, она будет рассчитываться динамически */
+    /* height: 100%; */
+}
+
+/* Стили для автодополнения */
+.autocomplete-container {
+    position: relative;
+    width: 100%; /* Занимает ширину родительского контейнера */
+}
+
+.autocomplete-list {
+    position: absolute;
+    top: 100%; /* Располагаем сразу под полем ввода */
+    left: 0;
+    right: 0;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-top: none; /* Убираем верхнюю границу, чтобы не было дубля с input */
+    border-radius: 0 0 6px 6px; /* Закругляем нижние углы */
+    max-height: 200px;
+    overflow-y: auto;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    z-index: 1001; /* Выше других элементов */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Лёгкая тень */
+}
+
+.autocomplete-item {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+    transition: background-color 0.2s;
+}
+
+.autocomplete-item:last-child {
+    border-bottom: none; /* Убираем границу у последнего элемента */
+}
+
+.autocomplete-item:hover {
+    background-color: #f0f0f0;
+}
+
+.autocomplete-item.highlighted {
+    background-color: #e6f3ff; /* Подсветка при навигации с клавиатуры */
+}
+
+/* Стили для индикатора логики */
+.filter-logic-indicator {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    padding: 5px 15px;
+    margin: 5px 0; /* Отступы сверху и снизу */
+    background-color: #e0e0e0;
+    color: #333;
+    border-radius: 12px;
+    font-weight: bold;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.1s;
+    user-select: none;
+    width: fit-content; /* Ширина по содержимому */
+    margin-left: auto; /* Выравнивание по правому краю */
+    margin-right: auto; /* Центрирование */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.filter-logic-indicator:hover {
+    background-color: #d0d0d0;
+    transform: scale(1.05); /* Лёгкое увеличение при наведении */
+}
+
+.filter-logic-indicator.toggled {
+    background-color: #4CAF50; /* Временное изменение цвета при переключении */
+    color: white;
+}
+
+/* Стили для кнопок внутри строки (удаления и добавления) */
+.filter-actions-row {
+    display: flex;
+    flex-direction: column; /* Кнопки будут одна под другой */
+    align-items: flex-end; /* Выравнивание по правому краю */
+    gap: 5px; /* Небольшой отступ между кнопками */
+    margin-left: 10px; /* Отступ от основного блока фильтра */
+}
+
+.btn-remove {
+    padding: 6px 10px;
+    border: 1px solid #ff6b6b;
+    background-color: white;
+    color: #ff6b6b;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+    align-self: flex-start; /* Выравнивание кнопки удаления по левому краю */
+}
+
+.btn-remove:hover {
+    background-color: #ff6b6b;
+    color: white;
+}
+
+.add-logic-buttons {
+    display: flex;
+    gap: 5px; /* Отступ между кнопками "И" и "ИЛИ" */
+    align-self: flex-start; /* Выравнивание кнопок добавления по левому краю */
+}
+
+.btn-add-logic {
+    padding: 6px 10px;
+    border: 1px solid #1E90FF;
+    background-color: white;
+    color: #1E90FF;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.3s;
+}
+
+.btn-add-logic:hover {
+    background-color: #1E90FF;
+    color: white;
+}

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Расписание мероприятий</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Шапка -->
+        <header class="header">
+            <div class="header-left">
+                <h1>Расписание мероприятий</h1>
+                <div class="stats">
+                    <span class="total">Всего: <span id="total-count">70</span></span>
+                    <span class="today">Сегодня: <span id="today-count">8</span></span>
+                </div>
+            </div>
+            <div class="header-right">
+                <button id="export-excel" class="btn-excel">
+                    <i class="fas fa-file-excel"></i> Выгрузить в Excel
+                </button>
+            </div>
+        </header>
+
+        <!-- Навигация по дням -->
+        <nav class="days-navigation">
+            <div class="days-container">
+                <button class="day-btn active" data-day="1">Пн</button>
+                <button class="day-btn" data-day="2">Вт</button>
+                <button class="day-btn" data-day="3">Ср</button>
+                <button class="day-btn" data-day="4">Чт</button>
+                <button class="day-btn" data-day="5">Пт</button>
+                <button class="day-btn" data-day="6">Сб</button>
+                <button class="day-btn" data-day="7">Вс</button>
+            </div>
+            <button id="calendar-toggle" class="btn-calendar">
+                <i class="far fa-calendar-alt"></i> Календарь
+            </button>
+        </nav>
+
+        <!-- Календарь (скрыт по умолчанию) -->
+        <div id="calendar-container" class="calendar-container" style="display: none;">
+            <input type="text" id="datepicker" placeholder="Выберите дату">
+        </div>
+
+        <!-- Фильтры -->
+        <section class="filters-section">
+            <h3>Фильтры</h3>
+            <div id="filters-container" class="filters-container">
+                <div class="filter-row" data-group="0">
+                    <div class="filter-group">
+                        <select class="filter-type" onchange="updateFilterInputs(this)">
+                            <option value="">Выберите тип фильтра</option>
+                            <option value="type">Тип мероприятия</option>
+                            <option value="title">Название мероприятия</option>
+                            <option value="teacher">Учитель</option>
+                            <option value="room">Кабинет</option>
+                            <option value="course">Направление</option>
+                            <option value="tutor">Куратор</option>
+                            <option value="pupil">Ребенок</option>
+                        </select>
+                        
+                        <div class="filter-value-container" style="display: none;">
+                            <!-- Динамически заполняется -->
+                            <div class="autocomplete-container" style="display: none;">
+                                <ul class="autocomplete-list"></ul>
+                            </div>
+                        </div>
+                        
+                        <div class="time-filters" style="display: none;">
+                            <input type="time" class="time-start" placeholder="Начало">
+                            <input type="time" class="time-end" placeholder="Окончание">
+                        </div>
+                    </div>
+                    
+                    <div class="filter-logic">
+                        <button class="btn-logic" data-logic="and" onclick="addFilterRow('and')">И</button>
+                        <button class="btn-logic" data-logic="or" onclick="addFilterRow('or')">ИЛИ</button>
+                        <button class="btn-remove" onclick="removeFilterRow(this)">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="filter-actions">
+                <button id="apply-filters" class="btn-apply">Применить фильтры</button>
+                <button id="clear-filters" class="btn-clear">Очистить все</button>
+            </div>
+            
+            <div id="filter-result" class="filter-result">
+                <!-- Результаты фильтрации -->
+            </div>
+        </section>
+
+        <!-- Диаграмма Ганта -->
+        <section class="gantt-section">
+            <div class="gantt-header">
+                <h3>Диаграмма</h3>
+                <div class="timeline-controls">
+                    <button id="now-btn" class="btn-now">
+                        <i class="fas fa-clock"></i> Сейчас
+                    </button>
+                    <div class="current-time">
+                        Текущее время: <span id="current-time">14:36</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="gantt-container">
+                <!-- Левая панель с названиями -->
+                <div class="gantt-sidebar">
+                    <div class="sidebar-header">Мероприятия</div>
+                    <div id="event-names" class="event-names">
+                        <!-- Названия мероприятий заполняются динамически -->
+                    </div>
+                </div>
+                
+                <!-- Основная область диаграммы -->
+                <div class="gantt-main">
+                    <!-- Временная шкала -->
+                    <div class="time-scale" id="time-scale">
+                        <!-- Часы заполняются динамически -->
+                    </div>
+                    
+                    <!-- Область мероприятий -->
+                    <div class="events-area" id="events-area">
+                        <!-- События рисуются на canvas -->
+                        <canvas id="gantt-canvas"></canvas>
+                        <!-- Временная линия -->
+                        <div id="timeline" class="timeline"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Статистика -->
+        <section class="stats-section">
+            <h3>Статистика</h3>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h4>Нагрузка преподавателей</h4>
+                    <div class="stat-content" id="teacher-stats">
+                        Загрузка...
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <h4>Занятость кабинетов</h4>
+                    <div class="stat-content" id="room-stats">
+                        Загрузка...
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <h4>Мероприятия по типам</h4>
+                    <div class="stat-content" id="type-stats">
+                        Загрузка...
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Модальное окно с деталями мероприятия -->
+        <div id="event-modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h3 id="modal-title"></h3>
+                <div class="modal-body" id="modal-body"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Подключаем библиотеки -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ru.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
