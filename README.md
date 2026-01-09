@@ -5,7 +5,7 @@ School Events Schedule Manager - An interactive web application for visualizing 
 
 Интерактивное веб-приложение для визуализации и управления расписанием школьных мероприятий.
 
-<img width="1440" height="900" alt="Снимок экрана 2026-01-09 в 15 35 20" src="https://github.com/user-attachments/assets/3aaa720b-7aa8-40ed-81bc-8d73f012a757" />
+<img width="1440" height="900" alt="Снимок экрана 2026-01-09 в 15 44 07" src="https://github.com/user-attachments/assets/f70fc680-a73e-4cbe-85b4-cbfce688a8e8" />
 
 
 ## 🚀 Возможности
