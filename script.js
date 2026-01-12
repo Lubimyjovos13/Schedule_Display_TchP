@@ -365,10 +365,9 @@ function setupEventListeners() {
     // Кнопки дней недели
     document.querySelectorAll('.day-btn').forEach(btn => {
         btn.addEventListener('click', function() {
-            const day = parseInt(this.dataset.day);
-            filterByDay(day);
-            
-            // Обновляем активную кнопку
+            const day = this.dataset.day; // <-- Берем значение как строку!
+            filterByDay(day); // <-- Передаем строку напрямую
+            // Обновляем активную кнопку (это уже делает filterByDay, но можно оставить для уверенности)
             document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
             this.classList.add('active');
         });
@@ -485,20 +484,46 @@ function stopDragging() {
     // manualTimeMode остаётся true — пользователь всё ещё смотрит выбранное время
 }
 
+// Функция для фильтрации по дню или показа всех мероприятий
 function filterByDay(day) {
-    currentDay = day;
-    filteredEvents = events.filter(event => event.day_of_week === day);
-    
-    // Обновляем счетчик
-    document.getElementById('today-count').textContent = filteredEvents.length;
-    
+    currentDay = day; // Сохраняем текущий день/состояние
+
+    if (day === 'all') {
+        // Показываем все мероприятия
+        filteredEvents = [...events]; // Создаем копию массива
+        // Сортируем по дню недели, а затем по времени начала
+        filteredEvents.sort((a, b) => {
+            // Сначала сортируем по дню недели (1=Пн, 7=Вс)
+            if (a.day_of_week !== b.day_of_week) {
+                return a.day_of_week - b.day_of_week;
+            }
+            // Затем сортируем по времени начала
+            return timeToMinutes(a.time.begining) - timeToMinutes(b.time.begining);
+        });
+        // Обновляем счетчик (все мероприятия)
+        document.getElementById('today-count').textContent = filteredEvents.length;
+    } else {
+        // Показываем мероприятия только для выбранного дня
+        currentDay = parseInt(day); // Убедимся, что это число
+        filteredEvents = events.filter(event => event.day_of_week === currentDay);
+        // Обновляем счетчик
+        document.getElementById('today-count').textContent = filteredEvents.length;
+    }
+
     // Пересчитываем и отображаем события
     drawGrid();
     renderEvents();
     updateEventNames();
-    
+
     // Прокручиваем к началу
     eventsArea.scrollTop = 0;
+
+    // Обновляем активную кнопку
+    document.querySelectorAll('.day-btn').forEach(btn => btn.classList.remove('active'));
+    const currentBtn = document.querySelector(`.day-btn[data-day="${day}"]`);
+    if (currentBtn) {
+        currentBtn.classList.add('active');
+    }
 }
 
 // ОБНОВЛЕННАЯ ФУНКЦИЯ renderEvents
@@ -1089,7 +1114,6 @@ function applyFilters() {
     const filterRows = Array.from(filtersContainer.children).filter(child => child.classList.contains('filter-row'));
     // Собираем только индикаторы логики
     const logicIndicators = Array.from(filtersContainer.children).filter(child => child.classList.contains('filter-logic-indicator'));
-
     const activeFilters = [];
 
     // Собираем активные фильтры
@@ -1097,7 +1121,6 @@ function applyFilters() {
         const filterType = row.querySelector('.filter-type').value;
         const valueContainer = row.querySelector('.filter-value-container');
         if (!filterType || valueContainer.style.display === 'none') return;
-
         let filterValue = '';
         switch(filterType) {
             case 'type':
@@ -1114,7 +1137,6 @@ function applyFilters() {
                 filterValue = roomInput ? roomInput.value.trim() : '';
                 break;
         }
-
         if (filterValue && (typeof filterValue === 'string' ? filterValue.length > 0 :
             (filterValue.building || filterValue.number))) {
             // Определяем логику для этого фильтра
@@ -1132,15 +1154,22 @@ function applyFilters() {
 
     // Если нет активных фильтров, показываем все события текущего дня
     if (activeFilters.length === 0) {
-        filterByDay(currentDay);
+        filterByDay(currentDay); // <-- Вызываем filterByDay, чтобы восстановить состояние
         const resultDiv = document.getElementById('filter-result');
         resultDiv.textContent = 'Фильтры не применены. Показаны все мероприятия текущего дня.';
         resultDiv.style.color = '#888';
         return;
     }
 
+    // --- ИСПРАВЛЕНИЕ ---
     // Применяем фильтры к событиям текущего дня
-    let initialFiltered = events.filter(event => event.day_of_week === currentDay);
+    let initialFiltered;
+    if (currentDay === 'all') {
+        initialFiltered = [...events]; // Все мероприятия
+    } else {
+        initialFiltered = events.filter(event => event.day_of_week === currentDay); // Только текущий день
+    }
+    // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
 
     // Начинаем с первого фильтра (всегда "И" с начальным списком)
     let filtered = initialFiltered.filter(event => {
@@ -1154,7 +1183,6 @@ function applyFilters() {
         const currentFilterEvents = initialFiltered.filter(event => {
             return checkEventAgainstFilter(event, currentFilter.type, currentFilter.value);
         });
-
         if (currentFilter.logic === 'or') {
             // Объединяем (ИЛИ) текущий результат с результатом текущего фильтра
             const combinedIds = new Set([...filtered.map(e => e.id), ...currentFilterEvents.map(e => e.id)]);
@@ -1174,7 +1202,6 @@ function applyFilters() {
 
     // Показываем результат фильтрации
     const resultDiv = document.getElementById('filter-result');
-
     // Функция для форматирования значения фильтра
     function formatFilterValue(type, value) {
         if (type === 'room') {
@@ -1185,13 +1212,12 @@ function applyFilters() {
             return value.toString() || 'любой';
         }
     }
-
     resultDiv.innerHTML = `
-        Найдено мероприятий: <strong>${filteredEvents.length}</strong><br>
-        Применены фильтры: ${activeFilters.map((f, i) =>
-            `${i > 0 ? ` ${f.logic.toUpperCase()} ` : ''}${getFilterLabel(f.type)}: "${formatFilterValue(f.type, f.value)}"`
-        ).join('')}
-    `;
+Найдено мероприятий: <strong>${filteredEvents.length}</strong><br>
+Применены фильтры: ${activeFilters.map((f, i) =>
+`${i > 0 ? ` ${f.logic.toUpperCase()} ` : ''}${getFilterLabel(f.type)}: "${formatFilterValue(f.type, f.value)}"`
+).join('')}
+`;
     resultDiv.style.color = '#000';
 
     // Обновляем счетчик
