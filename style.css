@@ -1124,3 +1124,17 @@ select, input {
     background-color: #1E90FF;
     color: white;
 }
+
+/* Можно добавить стили для заголовков дней, если захочешь */
+.day-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    background-color: #e9ecef;
+    padding: 5px 10px;
+    font-weight: bold;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+    z-index: 10;
+}

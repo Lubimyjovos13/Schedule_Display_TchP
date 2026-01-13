@@ -329,30 +329,25 @@ function updateTimeline() {
     updateEventNames();
 }
 
-// Обновление позиции временной линии
+// Обновление позиции временной линии (обновленная версия)
 function updateTimelinePosition() {
     const startHour = 8;
     const endHour = 20;
     const startMinutes = startHour * 60;
     const endMinutes = endHour * 60;
     const totalMinutes = endMinutes - startMinutes; // 720 минут
-
     // Ограничиваем время в пределах отображаемого диапазона
     let displayTime = Math.max(startMinutes, Math.min(endMinutes, currentTimeMinutes));
-
     // Вычисляем позицию в процентах
     const minutesFromStart = displayTime - startMinutes;
     currentTimeLinePosition = (minutesFromStart / totalMinutes) * 100;
-
     // Устанавливаем позицию линии
     timeline.style.left = `${currentTimeLinePosition}%`;
-
     // Прокручиваем к текущему времени
     // Используем ширину canvas, а не scrollWidth, так как ширина events-area фиксирована
     const eventsAreaWidth = eventsArea.clientWidth;
     const timelinePositionPx = (currentTimeLinePosition / 100) * canvas.width; // Используем canvas.width
     const scrollLeft = timelinePositionPx - (eventsAreaWidth / 2);
-
     // Плавная прокрутка
     eventsArea.scrollTo({
         left: scrollLeft,
@@ -526,14 +521,9 @@ function filterByDay(day) {
     }
 }
 
-// ОБНОВЛЕННАЯ ФУНКЦИЯ renderEvents
+// ОБНОВЛЕННАЯ ФУНКЦИЯ renderEvents - для режима "Все"
 function renderEvents() {
     if (!ctx || filteredEvents.length === 0) return;
-
-    // Сортируем события по времени начала
-    const sortedEvents = [...filteredEvents].sort((a, b) =>
-        timeToMinutes(a.time.begining) - timeToMinutes(b.time.begining)
-    );
 
     // Параметры отображения
     const width = canvas.width;
@@ -545,105 +535,144 @@ function renderEvents() {
     // Высота одного события и отступы
     const eventHeight = 85;
     const eventMargin = 10;
-    const eventPadding = 5; // Внутренний отступ
+    const eventPadding = 0; // Внутренний отступ
 
-    // Размещаем события в несколько столбцов
-    const columns = [];
-    const placedEvents = new Set();
+    // Вертикальный отступ между днями
+    const dayGap = 500; // Пикселей
 
-    // Алгоритм упаковки событий
+    // Сортируем события по дню недели, а затем по времени начала
+    const sortedEvents = [...filteredEvents].sort((a, b) => {
+        if (a.day_of_week !== b.day_of_week) {
+            return a.day_of_week - b.day_of_week; // Сначала понедельник, потом вторник и т.д.
+        }
+        return timeToMinutes(a.time.begining) - timeToMinutes(b.time.begining); // Затем по времени
+    });
+
+    // Группируем события по дням недели
+    const eventsByDay = {};
     sortedEvents.forEach(event => {
-        if (placedEvents.has(event.id)) return;
-        const startTime = timeToMinutes(event.time.begining);
-        const endTime = timeToMinutes(event.time.ending);
-        const eventStart = startTime - (startHour * 60);
-        const eventDuration = endTime - startTime;
-        const eventX = eventStart * pixelsPerMinute;
-        const eventWidth = eventDuration * pixelsPerMinute;
+        if (!eventsByDay[event.day_of_week]) {
+            eventsByDay[event.day_of_week] = [];
+        }
+        eventsByDay[event.day_of_week].push(event);
+    });
 
-        // Ищем подходящий столбец
-        let columnIndex = -1;
-        for (let i = 0; i < columns.length; i++) {
-            const column = columns[i];
-            let canPlace = true;
-            for (const placedEvent of column) {
-                const placedStart = timeToMinutes(placedEvent.time.begining) - (startHour * 60);
-                const placedEnd = timeToMinutes(placedEvent.time.ending) - (startHour * 60);
-                // Проверяем пересечение по времени
-                if (eventStart < placedEnd && eventStart + eventDuration > placedStart) {
-                    canPlace = false;
+    // Рассчитываем Y-координаты для каждого дня
+    let currentY = 0; // Начальная Y-позиция
+    const dayPositions = {}; // Храним информацию о позициях каждого дня для future use (например, прокрутка)
+
+    for (const day of Object.keys(eventsByDay).map(Number).sort()) { // Итерируемся по дням в порядке возрастания
+        const dayEvents = eventsByDay[day];
+        if (dayEvents.length === 0) continue;
+
+        // Сохраняем начало дня
+        dayPositions[day] = {
+            y: currentY,
+            height: 0 // Будет обновлено ниже
+        };
+
+        // Алгоритм упаковки событий для текущего дня
+        const columns = [];
+        const placedEvents = new Set();
+
+        dayEvents.forEach(event => {
+            if (placedEvents.has(event.id)) return;
+            const startTime = timeToMinutes(event.time.begining);
+            const endTime = timeToMinutes(event.time.ending);
+            const eventStart = startTime - (startHour * 60);
+            const eventDuration = endTime - startTime;
+            const eventX = eventStart * pixelsPerMinute;
+            const eventWidth = eventDuration * pixelsPerMinute;
+
+            // Ищем подходящий столбец
+            let columnIndex = -1;
+            for (let i = 0; i < columns.length; i++) {
+                const column = columns[i];
+                let canPlace = true;
+                for (const placedEvent of column) {
+                    const placedStart = timeToMinutes(placedEvent.time.begining) - (startHour * 60);
+                    const placedEnd = timeToMinutes(placedEvent.time.ending) - (startHour * 60);
+                    // Проверяем пересечение по времени
+                    if (eventStart < placedEnd && eventStart + eventDuration > placedStart) {
+                        canPlace = false;
+                        break;
+                    }
+                }
+                if (canPlace) {
+                    columnIndex = i;
                     break;
                 }
             }
-            if (canPlace) {
-                columnIndex = i;
-                break;
+
+            // Если не нашли подходящий столбец, создаем новый
+            if (columnIndex === -1) {
+                columnIndex = columns.length;
+                columns.push([]);
             }
-        }
 
-        // Если не нашли подходящий столбец, создаем новый
-        if (columnIndex === -1) {
-            columnIndex = columns.length;
-            columns.push([]);
-        }
+            // Добавляем событие в столбец
+            columns[columnIndex].push(event);
+            placedEvents.add(event.id);
 
-        // Добавляем событие в столбец
-        columns[columnIndex].push(event);
-        placedEvents.add(event.id);
+            // Рассчитываем Y-координату относительно начала дня
+            const eventY = currentY + columnIndex * (eventHeight + eventMargin) + eventPadding;
 
-        // Рассчитываем Y-координату
-        const eventY = columnIndex * (eventHeight + eventMargin) + eventPadding;
+            // Сохраняем координаты для обработки кликов
+            event.canvasRect = {
+                x: eventX,
+                y: eventY,
+                width: eventWidth,
+                height: eventHeight,
+                column: columnIndex,
+                day: day // Добавляем день для будущих нужд
+            };
+        });
 
-        // Сохраняем координаты для обработки кликов
-        event.canvasRect = {
-            x: eventX,
-            y: eventY,
-            width: eventWidth,
-            height: eventHeight,
-            column: columnIndex
-        };
-    });
+        // Расчет высоты блока для текущего дня
+        const dayHeight = columns.length * (eventHeight + eventMargin) + (100 * eventPadding);
+        dayPositions[day].height = dayHeight;
 
-    // РАСЧЕТ ВЫСОТЫ CANVAS НА ОСНОВЕ КОЛИЧЕСТВА КОЛОНОК
-    const totalRows = columns.length;
-    const canvasHeight = totalRows * (eventHeight + eventMargin) + (100 * eventPadding);
-    
+        // Обновляем общую Y-позицию для следующего дня
+        currentY += dayHeight + dayGap - 300; // Добавляем отступ между днями
+    }
+
+    // РАСЧЕТ ОБЩЕЙ ВЫСОТЫ CANVAS
+    const canvasHeight = currentY; // Общая высота, занятая всеми днями и отступами
+
     // Устанавливаем высоту canvas
     canvas.height = canvasHeight;
-    
+
     // Также устанавливаем высоту для events-area
     const eventsArea = document.getElementById('events-area');
     eventsArea.style.minHeight = canvasHeight + 'px';
-    
+
     // Перерисовываем сетку с новой высотой
     drawGrid();
-    
+
     // Отрисовываем все события
     sortedEvents.forEach(event => {
         if (event.canvasRect) {
-            drawEvent(event, event.canvasRect.x + 2, event.canvasRect.y, 
-                     event.canvasRect.width - 4, event.canvasRect.height);
+            drawEvent(event, event.canvasRect.x + 2, event.canvasRect.y,
+                event.canvasRect.width - 4, event.canvasRect.height);
         }
     });
 }
 
-// Отрисовка одного события
+// Отрисовка одного события (обновленная версия)
 function drawEvent(event, x, y, width, height) {
     // Цвет в зависимости от типа мероприятия
     const color = eventTypeColors[event.type_of_event] || '#888888';
     const hoverColor = adjustColor(color, 20);
     const isHovered = event.isHovered;
-    
+
     // Рисуем закругленный прямоугольник с тенью
     const radius = 8;
     ctx.fillStyle = isHovered ? hoverColor : color;
-    
     // Тень для блока
     ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
     ctx.shadowBlur = 4;
     ctx.shadowOffsetX = 1;
     ctx.shadowOffsetY = 1;
-    
     ctx.beginPath();
     ctx.moveTo(x + radius, y);
     ctx.lineTo(x + width - radius, y);
@@ -656,51 +685,75 @@ function drawEvent(event, x, y, width, height) {
     ctx.quadraticCurveTo(x, y, x + radius, y);
     ctx.closePath();
     ctx.fill();
-    
+
     // Сбрасываем тень для текста
     ctx.shadowColor = 'transparent';
     ctx.shadowBlur = 0;
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
-    
+
     // Белый цвет для текста
     ctx.fillStyle = '#FFFFFF';
     ctx.font = 'bold 15px Arial, sans-serif';
-    
+
     // Название мероприятия (с обрезкой если не помещается)
     const maxTitleWidth = width - 20;
     let displayTitle = event.title;
-    
     if (ctx.measureText(displayTitle).width > maxTitleWidth) {
         while (ctx.measureText(displayTitle + '...').width > maxTitleWidth && displayTitle.length > 3) {
             displayTitle = displayTitle.substring(0, displayTitle.length - 1);
         }
         displayTitle = displayTitle + '...';
     }
-    
     ctx.fillText(displayTitle, x + 12, y + 28);
-    
-    // Преподаватель и кабинет
-    ctx.font = '13px Arial, sans-serif';
-    const teacherLastName = event.teacher.split(' ')[0];
-    const roomText = `${event.room.building}-${event.room.number}`;
-    const infoText = `${teacherLastName} | ${roomText}`;
-    
-    let displayInfo = infoText;
-    if (ctx.measureText(displayInfo).width > maxTitleWidth) {
-        while (ctx.measureText(displayInfo + '...').width > maxTitleWidth && displayInfo.length > 3) {
-            displayInfo = displayInfo.substring(0, displayInfo.length - 1);
+
+    // --- НОВЫЙ КОД: ДЕНЬ НЕДЕЛИ (ТОЛЬКО В РЕЖИМЕ "ВСЕ") ---
+    if (currentDay === 'all') {
+        // Получаем сокращенное название дня недели
+        const dayShortNames = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+        const dayShortName = dayShortNames[event.day_of_week] || '';
+        // Рисуем день недели слева от фамилии
+        ctx.font = 'bold 12px Arial, sans-serif';
+        const dayTextWidth = ctx.measureText(dayShortName).width;
+        ctx.fillText(dayShortName, x + 12, y + 52); // Позиция немного выше, чем основной текст
+        // Обновляем позицию X для основного текста, чтобы он не перекрывался с днем
+        const infoX = x + 12 + dayTextWidth + 5; // Отступ 5 пикселей после дня
+        ctx.font = '13px Arial, sans-serif'; // Возвращаем обычный шрифт
+        // Преподаватель и кабинет
+        const teacherLastName = event.teacher.split(' ')[0];
+        const roomText = `${event.room.building}-${event.room.number}`;
+        const infoText = `${teacherLastName} | ${roomText}`;
+        let displayInfo = infoText;
+        if (ctx.measureText(displayInfo).width > maxTitleWidth - dayTextWidth - 5) { // Учитываем ширину дня
+            while (ctx.measureText(displayInfo + '...').width > maxTitleWidth - dayTextWidth - 5 && displayInfo.length > 3) {
+                displayInfo = displayInfo.substring(0, displayInfo.length - 1);
+            }
+            displayInfo = displayInfo + '...';
         }
-        displayInfo = displayInfo + '...';
+        ctx.fillText(displayInfo, infoX, y + 52);
+    } else {
+        // --- ИСХОДНЫЙ КОД: Для режима конкретного дня ---
+        ctx.font = '13px Arial, sans-serif';
+        // Преподаватель и кабинет
+        const teacherLastName = event.teacher.split(' ')[0];
+        const roomText = `${event.room.building}-${event.room.number}`;
+        const infoText = `${teacherLastName} | ${roomText}`;
+        let displayInfo = infoText;
+        if (ctx.measureText(displayInfo).width > maxTitleWidth) {
+            while (ctx.measureText(displayInfo + '...').width > maxTitleWidth && displayInfo.length > 3) {
+                displayInfo = displayInfo.substring(0, displayInfo.length - 1);
+            }
+            displayInfo = displayInfo + '...';
+        }
+        ctx.fillText(displayInfo, x + 12, y + 52);
     }
-    
-    ctx.fillText(displayInfo, x + 12, y + 52);
-    
+    // --- КОНЕЦ НОВОГО КОДА ---
+
     // Время
     ctx.font = '12px Arial, sans-serif';
     const timeText = `${event.time.begining}-${event.time.ending}`;
     ctx.fillText(timeText, x + 12, y + 76);
-    
+
     // Проверяем конфликты времени
     if (hasTimeConflict(event, filteredEvents)) {
         // Рисуем значок конфликта
@@ -845,14 +898,12 @@ function showEventDetails(event) {
 function updateEventNames() {
     const container = document.getElementById('event-names');
     container.innerHTML = '';
-    
     // Находим события, пересекающиеся с текущим временем
     const intersectingEvents = filteredEvents.filter(event => {
         const eventStart = timeToMinutes(event.time.begining);
         const eventEnd = timeToMinutes(event.time.ending);
         return eventStart <= currentTimeMinutes && eventEnd >= currentTimeMinutes;
     });
-    
     if (intersectingEvents.length === 0) {
         const div = document.createElement('div');
         div.className = 'event-name-item';
@@ -860,18 +911,29 @@ function updateEventNames() {
         container.appendChild(div);
         return;
     }
-    
     intersectingEvents.forEach((event, index) => {
         const div = document.createElement('div');
         div.className = 'event-name-item';
-        
         if (hasTimeConflict(event, intersectingEvents)) {
             div.classList.add('conflict');
-            div.innerHTML = `<span style="color: #dc3545; margin-right: 5px;">⚠️</span> ${event.title}`;
+            // --- НОВЫЙ КОД: ДЕНЬ НЕДЕЛИ В СПИСКЕ ---
+            if (currentDay === 'all') {
+                const dayShortNames = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+                const dayShortName = dayShortNames[event.day_of_week] || '';
+                div.innerHTML = `<span style="color: #dc3545; margin-right: 5px;">⚠️</span> ${dayShortName} ${event.title}`;
+            } else {
+                div.innerHTML = `<span style="color: #dc3545; margin-right: 5px;">⚠️</span> ${event.title}`;
+            }
         } else {
-            div.textContent = `${index + 1}. ${event.title}`;
+            // --- НОВЫЙ КОД: ДЕНЬ НЕДЕЛИ В СПИСКЕ ---
+            if (currentDay === 'all') {
+                const dayShortNames = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+                const dayShortName = dayShortNames[event.day_of_week] || '';
+                div.textContent = `${index + 1}. ${dayShortName} ${event.title}`;
+            } else {
+                div.textContent = `${index + 1}. ${event.title}`;
+            }
         }
-        
         div.addEventListener('click', () => {
             // Прокручиваем к событию на диаграмме
             if (event.canvasRect) {
@@ -887,26 +949,31 @@ function updateEventNames() {
     });
 }
 
-// Проверка конфликтов времени
+// Проверка конфликтов времени (обновленная версия)
 function hasTimeConflict(event, eventList) {
+    // Если мы в режиме "Все", ищем конфликты только в рамках одного дня недели
+    const isAllMode = currentDay === 'all';
+
     const eventStart = timeToMinutes(event.time.begining);
     const eventEnd = timeToMinutes(event.time.ending);
-    
+
     // Проверяем конфликты по преподавателю
-    const teacherConflicts = eventList.filter(e => 
-        e.id !== event.id && 
+    const teacherConflicts = eventList.filter(e =>
+        e.id !== event.id &&
         e.teacher === event.teacher &&
-        timeOverlap(eventStart, eventEnd, timeToMinutes(e.time.begining), timeToMinutes(e.time.ending))
+        timeOverlap(eventStart, eventEnd, timeToMinutes(e.time.begining), timeToMinutes(e.time.ending)) &&
+        (!isAllMode || e.day_of_week === event.day_of_week) // Добавляем условие для режима "Все"
     );
-    
+
     // Проверяем конфликты по кабинету
-    const roomConflicts = eventList.filter(e => 
-        e.id !== event.id && 
+    const roomConflicts = eventList.filter(e =>
+        e.id !== event.id &&
         e.room.building === event.room.building &&
         e.room.number === event.room.number &&
-        timeOverlap(eventStart, eventEnd, timeToMinutes(e.time.begining), timeToMinutes(e.time.ending))
+        timeOverlap(eventStart, eventEnd, timeToMinutes(e.time.begining), timeToMinutes(e.time.ending)) &&
+        (!isAllMode || e.day_of_week === event.day_of_week) // Добавляем условие для режима "Все"
     );
-    
+
     return teacherConflicts.length > 0 || roomConflicts.length > 0;
 }
 
@@ -1161,7 +1228,6 @@ function applyFilters() {
         return;
     }
 
-    // --- ИСПРАВЛЕНИЕ ---
     // Применяем фильтры к событиям текущего дня
     let initialFiltered;
     if (currentDay === 'all') {
@@ -1169,7 +1235,6 @@ function applyFilters() {
     } else {
         initialFiltered = events.filter(event => event.day_of_week === currentDay); // Только текущий день
     }
-    // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
 
     // Начинаем с первого фильтра (всегда "И" с начальным списком)
     let filtered = initialFiltered.filter(event => {
