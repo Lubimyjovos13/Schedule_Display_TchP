@@ -637,7 +637,7 @@ function renderEvents() {
     }
 
     // РАСЧЕТ ОБЩЕЙ ВЫСОТЫ CANVAS
-    const canvasHeight = currentY; // Общая высота, занятая всеми днями и отступами
+    const canvasHeight = currentY + 500; // Общая высота, занятая всеми днями и отступами
 
     // Устанавливаем высоту canvas
     canvas.height = canvasHeight;
@@ -1012,22 +1012,19 @@ function adjustColor(color, amount) {
     return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
 }
 
-// Фильтрация (остальные функции остаются без изменений, но добавлю их для полноты)
+// Обновление полей ввода для фильтра (упрощенная версия)
 function updateFilterInputs(select) {
     const row = select.closest('.filter-row');
     const valueContainer = row.querySelector('.filter-value-container');
-    const timeFilters = row.querySelector('.time-filters');
-    
-    valueContainer.style.display = 'none';
-    timeFilters.style.display = 'none';
-    
-    if (!select.value) return;
-    
-    valueContainer.style.display = 'flex';
+    // Очищаем контейнер значений
     valueContainer.innerHTML = '';
-    
+    valueContainer.style.display = 'none'; // По умолчанию скрываем
+    if (!select.value) return;
+
+    // Показываем контейнер значений
+    valueContainer.style.display = 'flex';
+
     const filterType = select.value;
-    
     // Для разных типов фильтров создаем разные поля ввода
     switch(filterType) {
         case 'type':
@@ -1035,14 +1032,13 @@ function updateFilterInputs(select) {
             const typeSelect = document.createElement('select');
             typeSelect.className = 'filter-value';
             typeSelect.innerHTML = `
-                <option value="">Выберите тип</option>
-                ${Object.keys(eventTypeColors).map(type => 
-                    `<option value="${type}">${type}</option>`
-                ).join('')}
-            `;
+<option value="">Выберите тип</option>
+${Object.keys(eventTypeColors).map(type =>
+`<option value="${type}">${type}</option>`
+).join('')}
+`;
             valueContainer.appendChild(typeSelect);
             break;
-            
         case 'title':
         case 'teacher':
         case 'course':
@@ -1051,17 +1047,14 @@ function updateFilterInputs(select) {
             const input = document.createElement('input');
             input.type = 'text';
             input.className = 'filter-value';
-            input.placeholder = 'Введите или выберите...'; // Изменим плейсхолдер
-
+            input.placeholder = 'Введите или выберите...';
             // Добавляем контейнер для автодополнения
             const autocompleteContainer = document.createElement('div');
             autocompleteContainer.className = 'autocomplete-container';
             autocompleteContainer.style.display = 'none';
             autocompleteContainer.innerHTML = '<ul class="autocomplete-list"></ul>';
-
             valueContainer.appendChild(input);
             valueContainer.appendChild(autocompleteContainer); // Добавляем контейнер в DOM
-
             // Инициализируем автодополнение
             initAutocomplete(input, filterType);
             break;
@@ -1072,29 +1065,23 @@ function updateFilterInputs(select) {
             roomInput.className = 'filter-value';
             roomInput.placeholder = 'Например: A-112 или только A';
             roomInput.style.flex = '1';
-
             // Добавляем контейнер для автодополнения
             const roomAutoContainer = document.createElement('div');
             roomAutoContainer.className = 'autocomplete-container';
             roomAutoContainer.style.display = 'none';
             roomAutoContainer.innerHTML = '<ul class="autocomplete-list"></ul>';
-
             valueContainer.appendChild(roomInput);
             valueContainer.appendChild(roomAutoContainer);
-
             // Инициализируем автодополнение с полными значениями кабинетов
             initAutocomplete(roomInput, 'room');
             break;
-        
     }
 }
 
 // Добавление строки фильтра
-function addFilterRow(logic = 'and') { // Принимаем логику как параметр, по умолчанию 'and'
+function addFilterRow(logic = 'and') {
     const filtersContainer = document.getElementById('filters-container');
-    const allChildren = Array.from(filtersContainer.children);
     const lastRow = document.querySelector('.filter-row:last-of-type'); // Находим последнюю строку фильтра
-
     // Если есть предыдущая строка, добавляем между ней и новой строкой индикатор
     if (lastRow) {
         const logicIndicator = document.createElement('div');
@@ -1105,44 +1092,27 @@ function addFilterRow(logic = 'and') { // Принимаем логику как
         filtersContainer.appendChild(logicIndicator);
     }
 
-    const newRow = document.createElement('div');
-    newRow.className = 'filter-row';
+    // Создаем новую строку фильтра, клонируя первую строку
+    const firstRow = document.querySelector('.filter-row');
+    const newRow = firstRow.cloneNode(true);
+
+    // Очищаем значения в новой строке
+    const selects = newRow.querySelectorAll('select');
+    const inputs = newRow.querySelectorAll('input');
+    selects.forEach(sel => sel.value = '');
+    inputs.forEach(inp => inp.value = '');
+
+    // Скрываем контейнер значений и время по умолчанию
+    const valueContainers = newRow.querySelectorAll('.filter-value-container');
+    const timeContainers = newRow.querySelectorAll('.time-filters');
+    valueContainers.forEach(cont => cont.style.display = 'none');
+    timeContainers.forEach(cont => cont.style.display = 'flex'); // Время всегда видимо
+
     // Присваиваем data-group как индекс новой строки (для отладки или будущих нужд)
     // newRow.setAttribute('data-group', ...); // Можно добавить, если нужно
 
-    newRow.innerHTML = `
-        <div class="filter-group">
-            <select class="filter-type" onchange="updateFilterInputs(this)">
-                <option value="">Выберите тип фильтра</option>
-                <option value="type">Тип мероприятия</option>
-                <option value="title">Название мероприятия</option>
-                <option value="teacher">Учитель</option>
-                <option value="room">Кабинет</option>
-                <option value="course">Направление</option>
-                <option value="tutor">Куратор</option>
-                <option value="pupil">Ребенок</option>
-            </select>
-            <div class="filter-value-container" style="display: none;">
-                <!-- Динамически заполняется -->
-            </div>
-            <div class="time-filters" style="display: none;">
-                <input type="time" class="time-start" placeholder="Начало">
-                <input type="time" class="time-end" placeholder="Окончание">
-            </div>
-        </div>
-        <div class="filter-actions-row"> <!-- Новый контейнер для кнопок удаления и добавления -->
-            <button class="btn-remove" onclick="removeFilterRow(this)">
-                <i class="fas fa-times"></i>
-            </button>
-            <div class="add-logic-buttons"> <!-- Контейнер для кнопок добавления "И" или "ИЛИ" -->
-                <button class="btn-add-logic" data-logic="and" onclick="addFilterRow('and')">+ И</button>
-                <button class="btn-add-logic" data-logic="or" onclick="addFilterRow('or')">+ ИЛИ</button>
-            </div>
-        </div>
-    `;
-    filtersContainer.appendChild(newRow);
-
     // Прокручиваем к новой строке для удобства
+    filtersContainer.appendChild(newRow);
     newRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
@@ -1174,7 +1144,7 @@ function removeFilterRow(button) {
     }
 }
 
-// Применение фильтров
+// Применение фильтров (обновленная версия с временными диапазонами)
 function applyFilters() {
     const filtersContainer = document.getElementById('filters-container');
     // Собираем только строки фильтров
@@ -1188,6 +1158,7 @@ function applyFilters() {
         const filterType = row.querySelector('.filter-type').value;
         const valueContainer = row.querySelector('.filter-value-container');
         if (!filterType || valueContainer.style.display === 'none') return;
+
         let filterValue = '';
         switch(filterType) {
             case 'type':
@@ -1204,6 +1175,13 @@ function applyFilters() {
                 filterValue = roomInput ? roomInput.value.trim() : '';
                 break;
         }
+
+        // Получаем значения временного диапазона
+        const timeStartInput = row.querySelector('.time-start');
+        const timeEndInput = row.querySelector('.time-end');
+        const timeStart = timeStartInput ? timeStartInput.value : ''; // Например, "13:00"
+        const timeEnd = timeEndInput ? timeEndInput.value : ''; // Например, "16:00"
+
         if (filterValue && (typeof filterValue === 'string' ? filterValue.length > 0 :
             (filterValue.building || filterValue.number))) {
             // Определяем логику для этого фильтра
@@ -1214,7 +1192,9 @@ function applyFilters() {
             activeFilters.push({
                 type: filterType,
                 value: filterValue,
-                logic: logic
+                logic: logic,
+                timeStart: timeStart, // Добавляем время начала
+                timeEnd: timeEnd      // Добавляем время окончания
             });
         }
     });
@@ -1239,14 +1219,14 @@ function applyFilters() {
     // Начинаем с первого фильтра (всегда "И" с начальным списком)
     let filtered = initialFiltered.filter(event => {
         const firstFilter = activeFilters[0];
-        return checkEventAgainstFilter(event, firstFilter.type, firstFilter.value);
+        return checkEventAgainstFilter(event, firstFilter.type, firstFilter.value, firstFilter.timeStart, firstFilter.timeEnd);
     });
 
     // Применяем остальные фильтры с учетом логики
     for (let i = 1; i < activeFilters.length; i++) {
         const currentFilter = activeFilters[i];
         const currentFilterEvents = initialFiltered.filter(event => {
-            return checkEventAgainstFilter(event, currentFilter.type, currentFilter.value);
+            return checkEventAgainstFilter(event, currentFilter.type, currentFilter.value, currentFilter.timeStart, currentFilter.timeEnd);
         });
         if (currentFilter.logic === 'or') {
             // Объединяем (ИЛИ) текущий результат с результатом текущего фильтра
@@ -1277,10 +1257,24 @@ function applyFilters() {
             return value.toString() || 'любой';
         }
     }
+    // Функция для форматирования временного диапазона
+    function formatTimeRange(timeStart, timeEnd) {
+        if (!timeStart && !timeEnd) {
+            return 'весь день';
+        }
+        if (timeStart && !timeEnd) {
+            return `с ${timeStart}`;
+        }
+        if (!timeStart && timeEnd) {
+            return `до ${timeEnd}`;
+        }
+        return `с ${timeStart} до ${timeEnd}`;
+    }
+
     resultDiv.innerHTML = `
 Найдено мероприятий: <strong>${filteredEvents.length}</strong><br>
 Применены фильтры: ${activeFilters.map((f, i) =>
-`${i > 0 ? ` ${f.logic.toUpperCase()} ` : ''}${getFilterLabel(f.type)}: "${formatFilterValue(f.type, f.value)}"`
+`${i > 0 ? ` ${f.logic.toUpperCase()} ` : ''}${getFilterLabel(f.type)}: "${formatFilterValue(f.type, f.value)}" (${formatTimeRange(f.timeStart, f.timeEnd)})`
 ).join('')}
 `;
     resultDiv.style.color = '#000';
@@ -1303,55 +1297,107 @@ function toggleLogicIndicator(event) {
     }, 200);
 }
 
-// Вспомогательная функция для проверки события по одному фильтру
-function checkEventAgainstFilter(event, filterType, filterValue) {
+// Вспомогательная функция для проверки события по одному фильтру (обновленная с временем)
+function checkEventAgainstFilter(event, filterType, filterValue, timeStart = '', timeEnd = '') {
+    // Проверка по типу фильтра
+    let matchesType = false;
     switch(filterType) {
         case 'type':
-            return event.type_of_event.toLowerCase().includes(filterValue.toLowerCase());
+            matchesType = event.type_of_event.toLowerCase().includes(filterValue.toLowerCase());
+            break;
         case 'title':
-            return event.title.toLowerCase().includes(filterValue.toLowerCase());
+            matchesType = event.title.toLowerCase().includes(filterValue.toLowerCase());
+            break;
         case 'teacher':
-            return event.teacher.toLowerCase().includes(filterValue.toLowerCase());
+            matchesType = event.teacher.toLowerCase().includes(filterValue.toLowerCase());
+            break;
         case 'room':
             // Если фильтр пустой, пропускаем все мероприятия
             if (!filterValue || filterValue.trim() === '') {
-                return true;
+                matchesType = true;
+            } else {
+                const searchRoom = filterValue.toLowerCase().trim();
+                const eventRoomFull = `${event.room.building}-${event.room.number}`.toLowerCase();
+                const eventBuilding = event.room.building.toLowerCase();
+                const eventNumber = event.room.number.toString().toLowerCase();
+                // Если введено с дефисом, ищем точное совпадение
+                if (searchRoom.includes('-')) {
+                    matchesType = eventRoomFull === searchRoom;
+                }
+                // Если введены только цифры, ищем по номеру
+                else if (/^\d+$/.test(searchRoom)) {
+                    matchesType = eventNumber.includes(searchRoom);
+                }
+                // Иначе ищем по зданию
+                else {
+                    matchesType = eventBuilding.includes(searchRoom);
+                }
             }
-            
-            const searchRoom = filterValue.toLowerCase().trim();
-            const eventRoomFull = `${event.room.building}-${event.room.number}`.toLowerCase();
-            const eventBuilding = event.room.building.toLowerCase();
-            const eventNumber = event.room.number.toString().toLowerCase();
-            
-            // Если введено с дефисом, ищем точное совпадение
-            if (searchRoom.includes('-')) {
-                return eventRoomFull === searchRoom;
-            }
-            
-            // Если введены только цифры, ищем по номеру
-            if (/^\d+$/.test(searchRoom)) {
-                return eventNumber.includes(searchRoom);
-            }
-            
-            // Иначе ищем по зданию
-            return eventBuilding.includes(searchRoom);
+            break;
         case 'course':
-            return event.course.toLowerCase().includes(filterValue.toLowerCase());
+            matchesType = event.course.toLowerCase().includes(filterValue.toLowerCase());
+            break;
         case 'tutor':
-            return event.tutor.toLowerCase().includes(filterValue.toLowerCase());
+            matchesType = event.tutor.toLowerCase().includes(filterValue.toLowerCase());
+            break;
         case 'pupil':
-            return event.pupils.some(pupil =>
+            matchesType = event.pupils.some(pupil =>
                 pupil.toLowerCase().includes(filterValue.toLowerCase())
             );
+            break;
         default:
-            return true;
+            matchesType = true;
     }
+
+    // Если не соответствует типу фильтра, возвращаем false
+    if (!matchesType) {
+        return false;
+    }
+
+    // Проверка по временному диапазону
+    if (timeStart || timeEnd) {
+        // Преобразуем время события в минуты
+        const eventStartMinutes = timeToMinutes(event.time.begining);
+        const eventEndMinutes = timeToMinutes(event.time.ending);
+
+        // Преобразуем временной диапазон фильтра в минуты (если заданы)
+        let filterStartMinutes = null;
+        let filterEndMinutes = null;
+        if (timeStart) {
+            filterStartMinutes = timeToMinutes(timeStart);
+        }
+        if (timeEnd) {
+            filterEndMinutes = timeToMinutes(timeEnd);
+        }
+
+        // Проверяем, пересекается ли событие с диапазоном
+        let matchesTime = true;
+        if (filterStartMinutes !== null && filterEndMinutes !== null) {
+            // Диапазон "с ... до ..."
+            // Событие должно начинаться до конца диапазона и заканчиваться после начала диапазона
+            matchesTime = eventStartMinutes < filterEndMinutes && eventEndMinutes > filterStartMinutes;
+        } else if (filterStartMinutes !== null) {
+            // Диапазон "с ..."
+            // Событие должно начинаться после начала диапазона
+            matchesTime = eventStartMinutes >= filterStartMinutes;
+        } else if (filterEndMinutes !== null) {
+            // Диапазон "до ..."
+            // Событие должно заканчиваться до конца диапазона
+            matchesTime = eventEndMinutes <= filterEndMinutes;
+        }
+
+        if (!matchesTime) {
+            return false;
+        }
+    }
+
+    // Если прошло все проверки, возвращаем true
+    return true;
 }
 
 // Очистка фильтров
 function clearFilters() {
     const filtersContainer = document.getElementById('filters-container');
-
     // Удаляем все строки фильтров и индикаторы, кроме первой строки фильтра
     const allChildren = Array.from(filtersContainer.children);
     for (let i = allChildren.length - 1; i >= 0; i--) { // Идём с конца
@@ -1364,20 +1410,21 @@ function clearFilters() {
             const inputs = child.querySelectorAll('input');
             selects.forEach(sel => sel.value = '');
             inputs.forEach(inp => inp.value = '');
-            // Скрываем контейнеры значений и времени
+            // Скрываем контейнеры значений
             const valueContainers = child.querySelectorAll('.filter-value-container');
-            const timeContainers = child.querySelectorAll('.time-filters');
             valueContainers.forEach(cont => cont.style.display = 'none');
-            timeContainers.forEach(cont => cont.style.display = 'none');
+            // Очищаем поля времени
+            const timeStartInput = child.querySelector('.time-start');
+            const timeEndInput = child.querySelector('.time-end');
+            if (timeStartInput) timeStartInput.value = '';
+            if (timeEndInput) timeEndInput.value = '';
         } else {
             // Удаляем любую строку (кроме первой, которая обработана выше) и любой индикатор
             child.remove();
         }
     }
-
     const resultDiv = document.getElementById('filter-result');
     resultDiv.textContent = '';
-
     // Восстанавливаем отображение текущего дня
     filterByDay(currentDay);
 }
@@ -1612,17 +1659,22 @@ function handleCanvasClick(e) {
     findEventAtCoordinates(x, y);
 }
 
-// Функция для обработки touch события
+// Обработка касания на Canvas (для мобильных устройств)
 function handleCanvasTouch(e) {
-    e.preventDefault(); // Предотвращает стандартные жесты браузера
-    if (e.touches.length > 0) { // Проверяем, что есть хотя бы один контакт
-        const rect = canvas.getBoundingClientRect();
-        const touch = e.touches[0]; // Берем первый контакт
-        const x = touch.clientX - rect.left;
-        const y = touch.clientY - rect.top;
+    // Предотвращаем стандартное поведение (например, прокрутку страницы при свайпе)
+    e.preventDefault();
 
-        findEventAtCoordinates(x, y);
-    }
+    // Убеждаемся, что касание произошло
+    if (e.touches.length === 0 && e.changedTouches.length === 0) return;
+
+    // Берём координаты первого завершённого касания
+    const touch = e.changedTouches[0]; // используем changedTouches для touchend
+
+    const rect = canvas.getBoundingClientRect();
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+
+    findEventAtCoordinates(x, y);
 }
 
 // Вспомогательная функция для поиска события по координатам
