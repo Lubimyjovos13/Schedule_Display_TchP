@@ -510,6 +510,9 @@ function filterByDay(day) {
     renderEvents();
     updateEventNames();
 
+    // --- НОВЫЙ КОД: Обновляем статистику ---
+    updateStatistics();
+
     // Прокручиваем к началу
     eventsArea.scrollTop = 0;
 
@@ -1245,6 +1248,9 @@ function applyFilters() {
     renderEvents();
     updateEventNames();
 
+    // --- НОВЫЙ КОД: Обновляем статистику ---
+    updateStatistics();
+
     // Показываем результат фильтрации
     const resultDiv = document.getElementById('filter-result');
     // Функция для форматирования значения фильтра
@@ -1427,13 +1433,16 @@ function clearFilters() {
     resultDiv.textContent = '';
     // Восстанавливаем отображение текущего дня
     filterByDay(currentDay);
+
+    // --- НОВЫЙ КОД: Обновляем статистику ---
+    updateStatistics();
 }
 
-// Обновление статистики
+// Обновление статистики (обновленная версия - для filteredEvents)
 function updateStatistics() {
     // Статистика по преподавателям
     const teacherStats = {};
-    events.forEach(event => {
+    filteredEvents.forEach(event => {
         if (!teacherStats[event.teacher]) {
             teacherStats[event.teacher] = 0;
         }
@@ -1442,56 +1451,47 @@ function updateStatistics() {
         const hours = (end - start) / 60;
         teacherStats[event.teacher] += hours;
     });
-    
+
     let teacherHTML = '';
-    Object.entries(teacherStats)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 5)
-        .forEach(([teacher, hours]) => {
-            teacherHTML += `<div>${teacher}: ${hours.toFixed(1)} ч</div>`;
-        });
-    
-    document.getElementById('teacher-stats').innerHTML = teacherHTML || 'Нет данных';
-    
+    // Сортируем по убыванию часов
+    Object.entries(teacherStats).sort((a, b) => b[1] - a[1]).forEach(([teacher, hours]) => {
+        teacherHTML += `<div class="stat-item">${teacher}: ${hours.toFixed(1)} ч</div>`;
+    });
+    document.getElementById('teacher-stats').innerHTML = teacherHTML || '<div class="stat-item">Нет данных</div>';
+
     // Статистика по кабинетам
     const roomStats = {};
-    events.forEach(event => {
-        const room = `${event.room.building}-${event.room.number}`;
-        if (!roomStats[room]) {
-            roomStats[room] = 0;
+    filteredEvents.forEach(event => {
+        const roomKey = `${event.room.building}-${event.room.number}`;
+        if (!roomStats[roomKey]) {
+            roomStats[roomKey] = 0;
         }
-        roomStats[room]++;
+        roomStats[roomKey]++;
     });
-    
+
     let roomHTML = '';
-    Object.entries(roomStats)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 5)
-        .forEach(([room, count]) => {
-            roomHTML += `<div>${room}: ${count} мероприятий</div>`;
-        });
-    
-    document.getElementById('room-stats').innerHTML = roomHTML || 'Нет данных';
-    
+    // Сортируем по убыванию количества мероприятий
+    Object.entries(roomStats).sort((a, b) => b[1] - a[1]).forEach(([room, count]) => {
+        roomHTML += `<div class="stat-item">${room}: ${count} мероприятий</div>`;
+    });
+    document.getElementById('room-stats').innerHTML = roomHTML || '<div class="stat-item">Нет данных</div>';
+
     // Статистика по типам мероприятий
     const typeStats = {};
-    events.forEach(event => {
+    filteredEvents.forEach(event => {
         if (!typeStats[event.type_of_event]) {
             typeStats[event.type_of_event] = 0;
         }
         typeStats[event.type_of_event]++;
     });
-    
+
     let typeHTML = '';
-    Object.entries(typeStats).forEach(([type, count]) => {
+    // Сортируем по убыванию количества
+    Object.entries(typeStats).sort((a, b) => b[1] - a[1]).forEach(([type, count]) => {
         const color = eventTypeColors[type] || '#888888';
-        typeHTML += `<div>
-            <span style="display: inline-block; width: 12px; height: 12px; background-color: ${color}; margin-right: 8px; border-radius: 2px;"></span>
-            ${type}: ${count}
-        </div>`;
+        typeHTML += `<div class="stat-item" style="display: flex; align-items: center; gap: 8px;"><span style="display: inline-block; width: 12px; height: 12px; background-color: ${color}; border-radius: 3px;"></span> ${type}: ${count}</div>`;
     });
-    
-    document.getElementById('type-stats').innerHTML = typeHTML || 'Нет данных';
+    document.getElementById('type-stats').innerHTML = typeHTML || '<div class="stat-item">Нет данных</div>';
 }
 
 // Выгрузка в Excel с дополнительным листом "Все мероприятия"
