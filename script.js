@@ -1119,13 +1119,13 @@ function addFilterRow(logic = 'and') {
     newRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
+// Исправленная функция removeFilterRow
 function removeFilterRow(button) {
     const row = button.closest('.filter-row');
     if (row && document.querySelectorAll('.filter-row').length > 1) {
         const container = document.getElementById('filters-container');
         const allChildren = Array.from(container.children);
         const rowIndex = allChildren.indexOf(row);
-
         // Найти и удалить индикатор *перед* этой строкой
         if (rowIndex > 0) {
             const prevElement = allChildren[rowIndex - 1];
@@ -1135,19 +1135,38 @@ function removeFilterRow(button) {
         }
         row.remove();
     } else if (row && document.querySelectorAll('.filter-row').length === 1) {
-        // Если удаляется последняя строка, очищаем её, но не удаляем
+        // Если удаляется последняя строка, ОЧИЩАЕМ ЕЁ ЗНАЧЕНИЯ, но НЕ СКРЫВАЕМ КОНТЕЙНЕРЫ
         const selects = row.querySelectorAll('select');
         const inputs = row.querySelectorAll('input');
         selects.forEach(sel => sel.value = '');
         inputs.forEach(inp => inp.value = '');
+
+        // Очищаем поля временного диапазона
+        const timeStartInput = row.querySelector('.time-start');
+        const timeEndInput = row.querySelector('.time-end');
+        if (timeStartInput) timeStartInput.value = '';
+        if (timeEndInput) timeEndInput.value = '';
+
+        // Скрываем контейнер значений (например, автодополнение)
         const valueContainers = row.querySelectorAll('.filter-value-container');
-        const timeContainers = row.querySelectorAll('.time-filters');
         valueContainers.forEach(cont => cont.style.display = 'none');
-        timeContainers.forEach(cont => cont.style.display = 'none');
+
+        // --- ВАЖНО: НЕ СКРЫВАЕМ КОНТЕЙНЕР ВРЕМЕННЫХ ПОЛЕЙ ---
+        // Они должны оставаться видимыми, чтобы пользователь мог снова выбрать время
+        // const timeContainers = row.querySelectorAll('.time-filters');
+        // timeContainers.forEach(cont => cont.style.display = 'none'); // УДАЛЯЕМ ЭТУ СТРОКУ
+
+        // Дополнительно: можно вызвать updateFilterInputs, чтобы сбросить все динамические элементы
+        // Например, если был выбран тип "teacher", то после очистки он должен вернуться в состояние "Выберите тип фильтра"
+        const select = row.querySelector('.filter-type');
+        if (select) {
+            select.value = ''; // Сбрасываем выбор типа фильтра
+            updateFilterInputs(select); // Обновляем интерфейс
+        }
     }
 }
 
-// Применение фильтров (обновленная версия с временными диапазонами)
+// Обновленная функция applyFilters (версия 3.0)
 function applyFilters() {
     const filtersContainer = document.getElementById('filters-container');
     // Собираем только строки фильтров
@@ -1202,6 +1221,53 @@ function applyFilters() {
         }
     });
 
+    // --- НОВЫЙ КОД: ПРОВЕРКА НА "СВОБОДНЫЙ" ---
+    // Проверяем, есть ли хотя бы один фильтр "Свободный"
+    const freeFilters = activeFilters.filter(f => f.value === 'Свободный');
+
+    if (freeFilters.length > 0) {
+        // Создаем HTML для вывода результата
+        const resultDiv = document.getElementById('filter-result');
+        let resultHTML = '';
+
+        // Для каждого "Свободного" фильтра
+        freeFilters.forEach((freeFilter, index) => {
+            const availableItems = findAvailableTeachersAndRooms(freeFilter.type, freeFilter.timeStart, freeFilter.timeEnd);
+
+            // Формируем заголовок
+            const label = getFilterLabel(freeFilter.type);
+            resultHTML += `<strong>Свободные ${label}:</strong><br>`;
+
+            if (availableItems.length > 0) {
+                resultHTML += `<ul style="margin: 5px 0 0 20px; padding: 0;">`;
+                availableItems.forEach(item => {
+                    resultHTML += `<li>${item}</li>`;
+                });
+                resultHTML += `</ul>`;
+            } else {
+                resultHTML += `<span style="color: #dc3545;">Нет свободных ${label.toLowerCase()} в выбранное время.</span>`;
+            }
+
+            // Добавляем отступ между списками, если это не последний фильтр
+            if (index < freeFilters.length - 1) {
+                resultHTML += `<br>`;
+            }
+        });
+
+        // Выводим результат
+        resultDiv.innerHTML = resultHTML;
+        resultDiv.style.color = '#000';
+
+        // Важно: НЕ применяем фильтр к диаграмме, оставляем ее в состоянии "все мероприятия текущего дня"
+        // Мы просто выводим список свободных элементов
+        filterByDay(currentDay);
+        updateStatistics(); // Обновляем статистику
+
+        // Завершаем выполнение функции, так как мы не фильтруем события
+        return;
+    }
+    // --- КОНЕЦ НОВОГО КОДА ---
+
     // Если нет активных фильтров, показываем все события текущего дня
     if (activeFilters.length === 0) {
         filterByDay(currentDay); // <-- Вызываем filterByDay, чтобы восстановить состояние
@@ -1253,6 +1319,7 @@ function applyFilters() {
 
     // Показываем результат фильтрации
     const resultDiv = document.getElementById('filter-result');
+
     // Функция для форматирования значения фильтра
     function formatFilterValue(type, value) {
         if (type === 'room') {
@@ -1263,6 +1330,7 @@ function applyFilters() {
             return value.toString() || 'любой';
         }
     }
+
     // Функция для форматирования временного диапазона
     function formatTimeRange(timeStart, timeEnd) {
         if (!timeStart && !timeEnd) {
@@ -1278,11 +1346,11 @@ function applyFilters() {
     }
 
     resultDiv.innerHTML = `
-Найдено мероприятий: <strong>${filteredEvents.length}</strong><br>
-Применены фильтры: ${activeFilters.map((f, i) =>
-`${i > 0 ? ` ${f.logic.toUpperCase()} ` : ''}${getFilterLabel(f.type)}: "${formatFilterValue(f.type, f.value)}" (${formatTimeRange(f.timeStart, f.timeEnd)})`
-).join('')}
-`;
+    Найдено мероприятий: <strong>${filteredEvents.length}</strong><br>
+    Применены фильтры: ${activeFilters.map((f, i) =>
+        `${i > 0 ? ` ${f.logic.toUpperCase()} ` : ''}${getFilterLabel(f.type)}: "${formatFilterValue(f.type, f.value)}" (${formatTimeRange(f.timeStart, f.timeEnd)})`
+    ).join('')}
+    `;
     resultDiv.style.color = '#000';
 
     // Обновляем счетчик
@@ -1401,39 +1469,89 @@ function checkEventAgainstFilter(event, filterType, filterValue, timeStart = '',
     return true;
 }
 
-// Очистка фильтров
+// Исправленная функция clearFilters
 function clearFilters() {
     const filtersContainer = document.getElementById('filters-container');
-    // Удаляем все строки фильтров и индикаторы, кроме первой строки фильтра
+    // Получаем все дочерние элементы контейнера
     const allChildren = Array.from(filtersContainer.children);
-    for (let i = allChildren.length - 1; i >= 0; i--) { // Идём с конца
-        const child = allChildren[i];
-        // Удаляем всё, что не является первой строкой фильтра
-        if (child.classList.contains('filter-row') && i === 0) {
-            // Оставляем только первую строку
-            // Очищаем поля в первой строке
-            const selects = child.querySelectorAll('select');
-            const inputs = child.querySelectorAll('input');
-            selects.forEach(sel => sel.value = '');
-            inputs.forEach(inp => inp.value = '');
-            // Скрываем контейнеры значений
-            const valueContainers = child.querySelectorAll('.filter-value-container');
-            valueContainers.forEach(cont => cont.style.display = 'none');
-            // Очищаем поля времени
-            const timeStartInput = child.querySelector('.time-start');
-            const timeEndInput = child.querySelector('.time-end');
-            if (timeStartInput) timeStartInput.value = '';
-            if (timeEndInput) timeEndInput.value = '';
-        } else {
-            // Удаляем любую строку (кроме первой, которая обработана выше) и любой индикатор
+
+    // Удаляем все индикаторы логики
+    allChildren.forEach(child => {
+        if (child.classList.contains('filter-logic-indicator')) {
             child.remove();
         }
+    });
+
+    // Получаем все строки фильтров
+    const filterRows = allChildren.filter(child => child.classList.contains('filter-row'));
+
+    // Если есть строки фильтров, оставляем только первую и очищаем ее
+    if (filterRows.length > 0) {
+        // Удаляем все строки фильтров, кроме первой
+        for (let i = filterRows.length - 1; i > 0; i--) {
+            filterRows[i].remove();
+        }
+
+        // Очищаем первую строку фильтра
+        const firstRow = filterRows[0];
+        const selects = firstRow.querySelectorAll('select');
+        const inputs = firstRow.querySelectorAll('input');
+        selects.forEach(sel => sel.value = '');
+        inputs.forEach(inp => inp.value = '');
+
+        // Скрываем контейнеры значений и времени
+        const valueContainers = firstRow.querySelectorAll('.filter-value-container');
+        const timeContainers = firstRow.querySelectorAll('.time-filters');
+        valueContainers.forEach(cont => cont.style.display = 'none');
+        timeContainers.forEach(cont => cont.style.display = 'flex'); // Время всегда видимо
+
+        // Дополнительно: можно вызвать updateFilterInputs, чтобы сбросить все динамические элементы
+        const select = firstRow.querySelector('.filter-type');
+        if (select) {
+            select.value = ''; // Сбрасываем выбор типа фильтра
+            updateFilterInputs(select); // Обновляем интерфейс
+        }
+    } else {
+        // Если строк фильтров нет (что маловероятно, но возможно), создаем новую первую строку
+        const firstRow = document.createElement('div');
+        firstRow.className = 'filter-row';
+        firstRow.innerHTML = `
+            <div class="filter-group">
+                <select class="filter-type" onchange="updateFilterInputs(this)">
+                    <option value="">Выберите тип фильтра</option>
+                    <option value="type">Тип мероприятия</option>
+                    <option value="title">Название мероприятия</option>
+                    <option value="teacher">Учитель</option>
+                    <option value="room">Кабинет</option>
+                    <option value="course">Направление</option>
+                    <option value="tutor">Куратор</option>
+                    <option value="pupil">Ребенок</option>
+                </select>
+                <div class="filter-value-container" style="display: none;">
+                    <div class="autocomplete-container" style="display: none;">
+                        <ul class="autocomplete-list"></ul>
+                    </div>
+                </div>
+                <div class="time-filters">
+                    <input type="time" class="time-start" placeholder="Начало">
+                    <input type="time" class="time-end" placeholder="Окончание">
+                </div>
+            </div>
+            <div class="filter-logic">
+                <button class="btn-logic" data-logic="and" onclick="addFilterRow('and')">И</button>
+                <button class="btn-logic" data-logic="or" onclick="addFilterRow('or')">ИЛИ</button>
+                <button class="btn-remove" onclick="removeFilterRow(this)">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+        filtersContainer.appendChild(firstRow);
     }
+
     const resultDiv = document.getElementById('filter-result');
     resultDiv.textContent = '';
     // Восстанавливаем отображение текущего дня
     filterByDay(currentDay);
-
     // --- НОВЫЙ КОД: Обновляем статистику ---
     updateStatistics();
 }
@@ -1753,30 +1871,43 @@ function showAutocomplete(listElement, items, onSelectCallback) {
     listElement.parentElement.style.display = 'block'; // Показываем контейнер
 }
 
+// Обновленная функция initAutocomplete
 function initAutocomplete(inputElement, filterType, customData = null) {
     // Проверяем, есть ли уже обработчики для этого элемента
     if (inputElement.autocompleteInitialized) return;
     inputElement.autocompleteInitialized = true;
-
     const container = inputElement.parentElement.querySelector('.autocomplete-container');
     const listElement = container.querySelector('.autocomplete-list');
-
     if (!listElement) return;
 
     // Используем кастомные данные, если переданы, иначе - из глобального объекта
     let sourceData = customData || autocompleteData[filterType];
     if (!sourceData) sourceData = []; // Если данных нет, используем пустой массив
 
-    let filteredItems = [...sourceData]; // Копируем массив
+    // Создаем копию исходного массива, чтобы не менять оригинальные данные
+    let filteredItems = [...sourceData];
+
+    // Для типа 'teacher' и 'room' добавляем опцию "Свободный" в начало списка
+    if (filterType === 'teacher' || filterType === 'room') {
+        // Добавляем "Свободный" как первую опцию
+        filteredItems.unshift('Свободный');
+    }
 
     inputElement.addEventListener('input', function() {
         const query = this.value.toLowerCase();
         if (query.length === 0) {
+            // При пустом запросе показываем все элементы, включая "Свободный"
             filteredItems = [...sourceData];
+            if (filterType === 'teacher' || filterType === 'room') {
+                filteredItems.unshift('Свободный');
+            }
         } else {
+            // При вводе текста ищем совпадения только среди реальных значений
             filteredItems = sourceData.filter(item =>
                 item.toLowerCase().includes(query)
             );
+            // Не добавляем "Свободный", если пользователь что-то ввел
+            // (можно добавить условие, если нужно, но обычно это не требуется)
         }
         showAutocomplete(listElement, filteredItems, (item) => { this.value = item; });
     });
@@ -1784,8 +1915,13 @@ function initAutocomplete(inputElement, filterType, customData = null) {
     inputElement.addEventListener('focus', function() {
         const query = this.value.toLowerCase();
         if (query.length === 0) {
+            // При фокусе без ввода показываем весь список с "Свободным"
             filteredItems = [...sourceData];
+            if (filterType === 'teacher' || filterType === 'room') {
+                filteredItems.unshift('Свободный');
+            }
         } else {
+            // При фокусе с введенным текстом показываем только совпадения
             filteredItems = sourceData.filter(item =>
                 item.toLowerCase().includes(query)
             );
@@ -1798,4 +1934,68 @@ function initAutocomplete(inputElement, filterType, customData = null) {
             container.style.display = 'none';
         }, 200);
     });
+}
+
+// Новая функция для поиска свободных учителей и кабинетов
+function findAvailableTeachersAndRooms(filterType, timeStart, timeEnd) {
+    // Получаем список всех учителей или кабинетов из autocompleteData
+    const allItems = autocompleteData[filterType];
+    if (!allItems || allItems.length === 0) {
+        return [];
+    }
+
+    // Преобразуем время начала и окончания в минуты
+    let filterStartMinutes = null;
+    let filterEndMinutes = null;
+    if (timeStart) {
+        filterStartMinutes = timeToMinutes(timeStart);
+    }
+    if (timeEnd) {
+        filterEndMinutes = timeToMinutes(timeEnd);
+    }
+
+    // Фильтруем события, которые попадают в выбранный день и временной диапазон
+    let eventsToCheck = [];
+    if (currentDay === 'all') {
+        eventsToCheck = [...events]; // Все мероприятия
+    } else {
+        eventsToCheck = events.filter(event => event.day_of_week === currentDay); // Только текущий день
+    }
+
+    // Если указан временной диапазон, фильтруем события по времени
+    if (timeStart || timeEnd) {
+        eventsToCheck = eventsToCheck.filter(event => {
+            const eventStartMinutes = timeToMinutes(event.time.begining);
+            const eventEndMinutes = timeToMinutes(event.time.ending);
+
+            let matchesTime = true;
+            if (filterStartMinutes !== null && filterEndMinutes !== null) {
+                // Диапазон "с ... до ..."
+                matchesTime = eventStartMinutes < filterEndMinutes && eventEndMinutes > filterStartMinutes;
+            } else if (filterStartMinutes !== null) {
+                // Диапазон "с ..."
+                matchesTime = eventStartMinutes >= filterStartMinutes;
+            } else if (filterEndMinutes !== null) {
+                // Диапазон "до ..."
+                matchesTime = eventEndMinutes <= filterEndMinutes;
+            }
+            return matchesTime;
+        });
+    }
+
+    // Получаем множество занятых учителей или кабинетов
+    const busyItems = new Set();
+    eventsToCheck.forEach(event => {
+        if (filterType === 'teacher') {
+            busyItems.add(event.teacher);
+        } else if (filterType === 'room') {
+            const roomKey = `${event.room.building}-${event.room.number}`;
+            busyItems.add(roomKey);
+        }
+    });
+
+    // Находим свободные элементы (те, что не входят в множество занятых)
+    const availableItems = allItems.filter(item => !busyItems.has(item));
+
+    return availableItems;
 }

@@ -1139,3 +1139,20 @@ select, input {
     z-index: 10;
 }
 
+
+
+/* Стили для результата поиска "Свободный" */
+.filter-result ul {
+    list-style-type: disc;
+    margin: 5px 0 0 20px;
+    padding: 0;
+}
+.filter-result li {
+    margin: 2px 0;
+    padding: 2px 5px;
+    border-radius: 4px;
+}
+.filter-result li:hover {
+    background-color: #e9ecef;
+}
+
