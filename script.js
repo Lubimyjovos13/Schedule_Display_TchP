@@ -217,7 +217,7 @@ function resizeCanvas() {
 
   // Перерисовываем сетку и события
   drawGrid();
-  renderEvents(); // <-- Эта функция теперь сама установит правильную высоту!
+  renderEvents(); 
 }
 
 // Создание временной шкалы с интервалом 30 минут
@@ -510,7 +510,7 @@ function filterByDay(day) {
     renderEvents();
     updateEventNames();
 
-    // --- НОВЫЙ КОД: Обновляем статистику ---
+    // Обновляем статистику ---
     updateStatistics();
 
     // Прокручиваем к началу
@@ -710,7 +710,7 @@ function drawEvent(event, x, y, width, height) {
     }
     ctx.fillText(displayTitle, x + 12, y + 28);
 
-    // --- НОВЫЙ КОД: ДЕНЬ НЕДЕЛИ (ТОЛЬКО В РЕЖИМЕ "ВСЕ") ---
+    // ДЕНЬ НЕДЕЛИ (ТОЛЬКО В РЕЖИМЕ "ВСЕ") ---
     if (currentDay === 'all') {
         // Получаем сокращенное название дня недели
         const dayShortNames = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
@@ -735,7 +735,7 @@ function drawEvent(event, x, y, width, height) {
         }
         ctx.fillText(displayInfo, infoX, y + 52);
     } else {
-        // --- ИСХОДНЫЙ КОД: Для режима конкретного дня ---
+        // Для режима конкретного дня ---
         ctx.font = '13px Arial, sans-serif';
         // Преподаватель и кабинет
         const teacherLastName = event.teacher.split(' ')[0];
@@ -750,8 +750,7 @@ function drawEvent(event, x, y, width, height) {
         }
         ctx.fillText(displayInfo, x + 12, y + 52);
     }
-    // --- КОНЕЦ НОВОГО КОДА ---
-
+   
     // Время
     ctx.font = '12px Arial, sans-serif';
     const timeText = `${event.time.begining}-${event.time.ending}`;
@@ -919,7 +918,7 @@ function updateEventNames() {
         div.className = 'event-name-item';
         if (hasTimeConflict(event, intersectingEvents)) {
             div.classList.add('conflict');
-            // --- НОВЫЙ КОД: ДЕНЬ НЕДЕЛИ В СПИСКЕ ---
+            // ДЕНЬ НЕДЕЛИ В СПИСКЕ ---
             if (currentDay === 'all') {
                 const dayShortNames = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
                 const dayShortName = dayShortNames[event.day_of_week] || '';
@@ -928,7 +927,7 @@ function updateEventNames() {
                 div.innerHTML = `<span style="color: #dc3545; margin-right: 5px;">⚠️</span> ${event.title}`;
             }
         } else {
-            // --- НОВЫЙ КОД: ДЕНЬ НЕДЕЛИ В СПИСКЕ ---
+            // ДЕНЬ НЕДЕЛИ В СПИСКЕ ---
             if (currentDay === 'all') {
                 const dayShortNames = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
                 const dayShortName = dayShortNames[event.day_of_week] || '';
@@ -1151,10 +1150,6 @@ function removeFilterRow(button) {
         const valueContainers = row.querySelectorAll('.filter-value-container');
         valueContainers.forEach(cont => cont.style.display = 'none');
 
-        // --- ВАЖНО: НЕ СКРЫВАЕМ КОНТЕЙНЕР ВРЕМЕННЫХ ПОЛЕЙ ---
-        // Они должны оставаться видимыми, чтобы пользователь мог снова выбрать время
-        // const timeContainers = row.querySelectorAll('.time-filters');
-        // timeContainers.forEach(cont => cont.style.display = 'none'); // УДАЛЯЕМ ЭТУ СТРОКУ
 
         // Дополнительно: можно вызвать updateFilterInputs, чтобы сбросить все динамические элементы
         // Например, если был выбран тип "teacher", то после очистки он должен вернуться в состояние "Выберите тип фильтра"
@@ -1221,7 +1216,6 @@ function applyFilters() {
         }
     });
 
-    // --- НОВЫЙ КОД: ПРОВЕРКА НА "СВОБОДНЫЙ" ---
     // Проверяем, есть ли хотя бы один фильтр "Свободный"
     const freeFilters = activeFilters.filter(f => f.value === 'Свободный');
 
@@ -1266,7 +1260,6 @@ function applyFilters() {
         // Завершаем выполнение функции, так как мы не фильтруем события
         return;
     }
-    // --- КОНЕЦ НОВОГО КОДА ---
 
     // Если нет активных фильтров, показываем все события текущего дня
     if (activeFilters.length === 0) {
@@ -1314,7 +1307,7 @@ function applyFilters() {
     renderEvents();
     updateEventNames();
 
-    // --- НОВЫЙ КОД: Обновляем статистику ---
+    // Обновляем статистику ---
     updateStatistics();
 
     // Показываем результат фильтрации
@@ -1552,7 +1545,7 @@ function clearFilters() {
     resultDiv.textContent = '';
     // Восстанавливаем отображение текущего дня
     filterByDay(currentDay);
-    // --- НОВЫЙ КОД: Обновляем статистику ---
+    // Обновляем статистику ---
     updateStatistics();
 }
 

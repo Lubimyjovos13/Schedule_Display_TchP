@@ -312,7 +312,7 @@ select, input {
     border: 1px solid #ddd;
     border-radius: 6px;
     overflow: hidden;
-    min-height: 500px; 
+    min-height: 500px;
 }
 
 .gantt-sidebar {
@@ -366,17 +366,40 @@ select, input {
 }
 
 .time-slot {
-    flex: 0 0 120px;
-    padding: 15px 10px;
+    flex: 0 0 60px;
+    padding: 15px 5px;
     text-align: center;
     border-right: 1px solid #eee;
     font-weight: 500;
+    font-size: 12px;
+    color: #666;
+    position: relative;
+}
+
+.time-slot:nth-child(even) {
+    background-color: #f8f9fa;
+}
+
+.time-slot:nth-child(odd) {
+    background-color: #ffffff;
+}
+
+.time-slot::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background-color: #e0e0e0;
 }
 
 .events-area {
     position: relative;
     height: calc(100% - 50px);
     overflow: auto;
+    background-color: #fafafa;
+    min-width: 1440px;
 }
 
 #gantt-canvas {
@@ -385,20 +408,41 @@ select, input {
     left: 0;
     width: 100%;
     height: 100%;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    overflow-y: auto;
 }
 
 .timeline {
     position: absolute;
     top: 0;
-    width: 2px;
+    width: 3px;
     height: 100%;
-    background-color: #1E90FF;
+    background-color: #FF5722;
     z-index: 5;
     cursor: col-resize;
+    box-shadow: 0 0 5px rgba(255, 87, 34, 0.5);
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -4px;
+    width: 11px;
+    height: 11px;
+    background-color: #FF5722;
+    border-radius: 50%;
+    box-shadow: 0 0 5px rgba(255, 87, 34, 0.8);
 }
 
 .timeline.dragging {
-    background-color: #FF8C00;
+    background-color: #FF9800;
+    box-shadow: 0 0 8px rgba(255, 152, 0, 0.6);
+}
+
+.timeline.dragging::before {
+    background-color: #FF9800;
 }
 
 /* Статистика */
@@ -451,7 +495,6 @@ select, input {
     height: 100%;
     background-color: rgba(0,0,0,0.5);
 }
-
 
 .modal-content {
     background-color: white;
@@ -590,442 +633,28 @@ select, input {
     }
 }
 
-/* Добавьте эти стили в конец файла style.css */
-
-/* Временная шкала с интервалом 30 минут */
-.time-slot {
-    flex: 0 0 60px; /* 60px для 30-минутных интервалов */
-    padding: 15px 5px;
-    text-align: center;
-    border-right: 1px solid #eee;
-    font-weight: 500;
-    font-size: 12px;
-    color: #666;
-    position: relative;
-}
-
-.time-slot:nth-child(even) {
-    background-color: #f8f9fa;
-}
-
-.time-slot:nth-child(odd) {
-    background-color: #ffffff;
-}
-
-.time-slot::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background-color: #e0e0e0;
-}
-
-/* Улучшения для временной линии */
-.timeline {
-    position: absolute;
-    top: 0;
-    width: 3px;
-    height: 100%;
-    background-color: #FF5722;
-    z-index: 5;
-    cursor: col-resize;
-    box-shadow: 0 0 5px rgba(255, 87, 34, 0.5);
-}
-
-.timeline::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -4px;
-    width: 11px;
-    height: 11px;
-    background-color: #FF5722;
-    border-radius: 50%;
-    box-shadow: 0 0 5px rgba(255, 87, 34, 0.8);
-}
-
-.timeline.dragging {
-    background-color: #FF9800;
-    box-shadow: 0 0 8px rgba(255, 152, 0, 0.6);
-}
-
-.timeline.dragging::before {
-    background-color: #FF9800;
-}
-
-/* Улучшения для списка мероприятий */
-.event-name-item {
-    padding: 12px 15px;
-    border-bottom: 1px solid #eee;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    background-color: white;
-}
-
-.event-name-item:hover {
-    background-color: #f0f7ff;
-    transform: translateX(5px);
-    box-shadow: 2px 0 5px rgba(0, 123, 255, 0.1);
-}
-
-.event-name-item.conflict {
-    background-color: #fff5f5;
-    border-left: 3px solid #dc3545;
-}
-
-.event-name-item.conflict:hover {
-    background-color: #ffeaea;
-}
-
-/* Модальное окно с прокруткой для учеников */
-.pupils-list::-webkit-scrollbar {
-    width: 8px;
-}
-
-.pupils-list::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
-}
-
-.pupils-list::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 4px;
-}
-
-.pupils-list::-webkit-scrollbar-thumb:hover {
-    background: #555;
-}
-
-/* Улучшения для диаграммы */
-.events-area {
-    position: relative;
-    height: calc(100% - 50px);
-    overflow: auto;
-    background-color: #fafafa;
-}
-
-#gantt-canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    image-rendering: -webkit-optimize-contrast;
-    image-rendering: crisp-edges;
-    overflow-y: auto;
-}
-
-/* Улучшения для адаптивности */
-@media (max-width: 768px) {
-    .time-slot {
-        flex: 0 0 50px;
-        font-size: 11px;
-        padding: 10px 3px;
-    }
-    
-    .gantt-container {
-        flex-direction: column;
-        height: 800px;
-    }
-    
-    .gantt-sidebar {
-        height: 250px;
-    }
-    
-    .gantt-main {
-        height: 550px;
-    }
-}
-
-@media (max-width: 480px) {
-    .time-slot {
-        flex: 0 0 40px;
-        font-size: 10px;
-    }
-}
-
-.gantt-event-block {
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16);
-    border-radius: 4px;
-}
-
-/* Фиксируем ширину области диаграммы, чтобы она соответствовала временному диапазону */
-.events-area {
-    position: relative;
-    
-    overflow: auto;
-    background-color: #fafafa;
-    /* Ширина для 24 интервалов по 30 минут (8:00-20:00) * 60px на интервал = 1440px */
-    /* Можно изменить 60px на другое значение, если хотите другой масштаб */
-    min-width: 1440px; /* 24 * 60 */
-}
-
-/* Обновляем стили для .gantt-main, чтобы он мог скроллиться */
-.gantt-main {
-    flex: 1;
-    overflow: auto;
-    position: relative;
-    /* Добавим горизонтальный скролл, если область диаграммы шире контейнера */
-    overflow-x: auto;
-}
-
-
-
-
-/* Диаграмма Ганта */
-.gantt-section {
-    background-color: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    margin-bottom: 25px;
-}
-
-.gantt-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.gantt-header h3 {
-    color: #000;
-    font-size: 20px;
-}
-
-.timeline-controls {
-    display: flex;
-    gap: 20px;
-    align-items: center;
-}
-
-.btn-now {
-    padding: 8px 16px;
-    background-color: #f8f9fa;
-    color: #666;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.3s;
-}
-
-.btn-now:hover {
-    background-color: #e9ecef;
-}
-
-.current-time {
-    color: #666;
-    font-size: 14px;
-}
-
-.gantt-container {
-    display: flex;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    overflow: hidden;
-    /* Убираем фиксированную высоту, чтобы контейнер мог расти */
-    /* height: 600px; <-- Закомментируйте или удалите эту строку */
-}
-
-.gantt-sidebar {
-    width: 300px;
-    border-right: 1px solid #ddd;
-    overflow-y: auto;
-    background-color: #f8f9fa;
-}
-
-.sidebar-header {
-    padding: 15px;
-    background-color: #e9ecef;
-    font-weight: 600;
-    border-bottom: 1px solid #ddd;
-}
-
-.event-names {
-    padding: 0;
-}
-
-.event-name-item {
-    padding: 12px 15px;
-    border-bottom: 1px solid #eee;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.event-name-item:hover {
-    background-color: #e9ecef;
-}
-
-.event-name-item.conflict {
-    color: #dc3545;
-    font-weight: 500;
-}
-
-.gantt-main {
-    flex: 1;
-    overflow: auto; /* <-- Добавляем прокрутку для всего main */
-    position: relative;
-}
-
-.time-scale {
-    display: flex;
-    background-color: #f8f9fa;
-    border-bottom: 1px solid #ddd;
-    height: 50px;
-    position: sticky;
-    top: 0;
-    z-index: 10;
-}
-
-.time-slot {
-    flex: 0 0 60px;
-    padding: 15px 5px;
-    text-align: center;
-    border-right: 1px solid #eee;
-    font-weight: 500;
-    font-size: 12px;
-    color: #666;
-    position: relative;
-}
-
-.time-slot:nth-child(even) {
-    background-color: #f8f9fa;
-}
-
-.time-slot:nth-child(odd) {
-    background-color: #ffffff;
-}
-
-.time-slot::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background-color: #e0e0e0;
-}
-
-.events-area {
-    position: relative;
-    /* Убираем фиксированную высоту, делаем ее авто */
-    /* height: calc(100% - 50px); <-- Закомментируйте или удалите */
-    min-height: 500px; /* Минимальная высота, можно изменить */
-    overflow: auto; /* <-- Важно: разрешаем прокрутку */
-    background-color: #fafafa;
-}
-
-#gantt-canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    /* Убираем фиксированную высоту, делаем ее авто */
-    /* height: 100%; <-- Закомментируйте или удалите */
-    image-rendering: -webkit-optimize-contrast;
-    image-rendering: crisp-edges;
-}
-
-.timeline {
-    position: absolute;
-    top: 0;
-    width: 3px;
-    height: 100%;
-    background-color: #FF5722;
-    z-index: 5;
-    cursor: col-resize;
-    box-shadow: 0 0 5px rgba(255, 87, 34, 0.5);
-}
-
-.timeline::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -4px;
-    width: 11px;
-    height: 11px;
-    background-color: #FF5722;
-    border-radius: 50%;
-    box-shadow: 0 0 5px rgba(255, 87, 34, 0.8);
-}
-
-.timeline.dragging {
-    background-color: #FF9800;
-    box-shadow: 0 0 8px rgba(255, 152, 0, 0.6);
-}
-
-.timeline.dragging::before {
-    background-color: #FF9800;
-}
-
-/* ОБНОВЛЕННЫЕ СТИЛИ ДЛЯ КОНТЕЙНЕРА ГАНТТА */
-.gantt-container {
-    display: flex;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    overflow: hidden;
-    /* УБЕРАЕМ фиксированную высоту */
-    /* height: 600px; */
-    min-height: 600px; /* Вместо фиксированной высоты используем минимальную */
-}
-
-/* ОБНОВЛЕННЫЕ СТИЛИ ДЛЯ ОСНОВНОЙ ОБЛАСТИ */
-.gantt-main {
-    flex: 1;
-    overflow: auto;
-    position: relative;
-    /* Добавляем минимальную высоту */
-    min-height: 600px;
-}
-
-/* ОБНОВЛЕННЫЕ СТИЛИ ДЛЯ ОБЛАСТИ СОБЫТИЙ */
-.events-area {
-    position: relative;
-    /* Убираем фиксированную высоту, делаем ее автоматической */
-    min-height: 500px;
-    overflow: auto;
-    background-color: #fafafa;
-    /* Минимальная ширина для временной шкалы */
-    min-width: 1440px; /* 24 интервала по 60px */
-}
-
-/* ОБНОВЛЕННЫЕ СТИЛИ ДЛЯ CANVAS */
-#gantt-canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    /* Убираем фиксированную высоту, она будет рассчитываться динамически */
-    /* height: 100%; */
-}
-
 /* Стили для автодополнения */
 .autocomplete-container {
     position: relative;
-    width: 100%; /* Занимает ширину родительского контейнера */
+    width: 100%;
 }
 
 .autocomplete-list {
     position: absolute;
-    top: 100%; /* Располагаем сразу под полем ввода */
+    top: 100%;
     left: 0;
     right: 0;
     background-color: white;
     border: 1px solid #ddd;
-    border-top: none; /* Убираем верхнюю границу, чтобы не было дубля с input */
-    border-radius: 0 0 6px 6px; /* Закругляем нижние углы */
+    border-top: none;
+    border-radius: 0 0 6px 6px;
     max-height: 200px;
     overflow-y: auto;
     list-style: none;
     padding: 0;
     margin: 0;
-    z-index: 1001; /* Выше других элементов */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Лёгкая тень */
+    z-index: 1001;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .autocomplete-item {
@@ -1036,7 +665,7 @@ select, input {
 }
 
 .autocomplete-item:last-child {
-    border-bottom: none; /* Убираем границу у последнего элемента */
+    border-bottom: none;
 }
 
 .autocomplete-item:hover {
@@ -1044,7 +673,7 @@ select, input {
 }
 
 .autocomplete-item.highlighted {
-    background-color: #e6f3ff; /* Подсветка при навигации с клавиатуры */
+    background-color: #e6f3ff;
 }
 
 /* Стили для индикатора логики */
@@ -1053,7 +682,7 @@ select, input {
     justify-content: center;
     align-items: center;
     padding: 5px 15px;
-    margin: 5px 0; /* Отступы сверху и снизу */
+    margin: 5px 0;
     background-color: #e0e0e0;
     color: #333;
     border-radius: 12px;
@@ -1062,29 +691,29 @@ select, input {
     cursor: pointer;
     transition: background-color 0.3s, transform 0.1s;
     user-select: none;
-    width: fit-content; /* Ширина по содержимому */
-    margin-left: auto; /* Выравнивание по правому краю */
-    margin-right: auto; /* Центрирование */
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .filter-logic-indicator:hover {
     background-color: #d0d0d0;
-    transform: scale(1.05); /* Лёгкое увеличение при наведении */
+    transform: scale(1.05);
 }
 
 .filter-logic-indicator.toggled {
-    background-color: #4CAF50; /* Временное изменение цвета при переключении */
+    background-color: #4CAF50;
     color: white;
 }
 
-/* Стили для кнопок внутри строки (удаления и добавления) */
+/* Стили для кнопок внутри строки */
 .filter-actions-row {
     display: flex;
-    flex-direction: column; /* Кнопки будут одна под другой */
-    align-items: flex-end; /* Выравнивание по правому краю */
-    gap: 5px; /* Небольшой отступ между кнопками */
-    margin-left: 10px; /* Отступ от основного блока фильтра */
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+    margin-left: 10px;
 }
 
 .btn-remove {
@@ -1095,7 +724,7 @@ select, input {
     border-radius: 4px;
     cursor: pointer;
     transition: all 0.3s;
-    align-self: flex-start; /* Выравнивание кнопки удаления по левому краю */
+    align-self: flex-start;
 }
 
 .btn-remove:hover {
@@ -1105,8 +734,8 @@ select, input {
 
 .add-logic-buttons {
     display: flex;
-    gap: 5px; /* Отступ между кнопками "И" и "ИЛИ" */
-    align-self: flex-start; /* Выравнивание кнопок добавления по левому краю */
+    gap: 5px;
+    align-self: flex-start;
 }
 
 .btn-add-logic {
@@ -1125,34 +754,19 @@ select, input {
     color: white;
 }
 
-/* Можно добавить стили для заголовков дней, если захочешь */
-.day-header {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    background-color: #e9ecef;
-    padding: 5px 10px;
-    font-weight: bold;
-    text-align: center;
-    border-bottom: 1px solid #ddd;
-    z-index: 10;
-}
-
-
-
-/* Стили для результата поиска "Свободный" */
+/* Стили для результата поиска */
 .filter-result ul {
     list-style-type: disc;
     margin: 5px 0 0 20px;
     padding: 0;
 }
+
 .filter-result li {
     margin: 2px 0;
     padding: 2px 5px;
     border-radius: 4px;
 }
+
 .filter-result li:hover {
     background-color: #e9ecef;
 }
-
